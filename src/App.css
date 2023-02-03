@@ -1,0 +1,242 @@
+@import url('https://fonts.googleapis.com/css2?family=Urbanist:wght@100;400&display=swap');
+
+.App {
+  text-align: center;
+  min-height: 100vh;
+}
+.gif-container{
+  width: 100%;
+  min-width: 500px;
+  padding-top: 70px;
+  padding-bottom: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.web{
+  background: url('../public/browser.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  height: 363px;
+  width: 600px;
+}
+.gif{
+  margin-top: 53px;
+  width: 556px;
+}
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  min-height: 20vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: hsl(214deg 32% 91%);
+  margin-bottom: 1em;
+}
+
+.App-header h1{
+  font-size: 4em;
+  margin-bottom: 0;
+  margin-top: 20px;
+  background: linear-gradient(90deg, rgba(255,151,54,1) 0%, rgba(135,32,255,1) 50%, rgba(255,72,51,1) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.App-link {
+  color: #61dafb;
+}
+.powered-by{
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 450px;
+  font-size: 16px;
+  font-weight: 100;
+  color: black;
+}
+.powered-by img{
+  height: 19px;
+  margin-left: 5px;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Web3Modal and button  */
+
+.button-container{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.button-container.connected{
+  position: fixed;
+  right: 45px;
+  top: 31px;
+}
+
+/* LIST COMPONENTS */
+.list-container{
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  align-items: center;
+  height: fit-content;
+}
+
+
+.container{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.loader-layer{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.error-message{
+  color: #e53867;
+}
+
+.delete-container{
+  position: relative;
+}
+
+.done-container{
+  position: relative;
+}
+
+/* FOOTER */
+footer {
+  width: 100%;
+  font-family: 'Urbanist';
+  font-style: normal;
+}
+
+
+.App-footer{
+  position: relative;
+  width: 100%;
+  height: 130px;
+  padding-top: 3em;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1em;
+}
+
+.line{
+  position: absolute;
+  width: 100%;
+  height: 4px;
+  top: 0px;
+  background: linear-gradient(90deg, #FF9736 0%, #8720FF 42.71%, #FF4833 100%);
+}
+
+.App-footer .texts{
+  width: 60%;
+  align-items: center;
+  flex-direction: column;
+  display: flex;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 22px;
+  text-align: center;
+  color: #0A142F;
+  opacity: 0.8;
+
+}
+
+.App-footer .branding{
+  width: 80%;
+  height: 80px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.App-footer .branding .logo{
+  width: 20%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+
+.App-footer .branding .logo img{
+  width: 40px;
+  height: 40px;
+  margin-right: 5px;
+}
+
+
+.App-footer .branding .rights{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Urbanist';
+  font-style: normal;
+  font-size:18px ;
+  width: 26%;
+}
+.App-footer .branding .rights img{
+  margin-right: 10px;
+  width: 100px;
+  height: 25px;
+}
+.App-footer .branding .social{
+  width: 20%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.App-footer .branding .social img{
+  width: 30px;
+  height: 30px;
+  margin-left: 6px;
+  margin-right: 6px;
+}
+
+.App-footer .address{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.App-footer .address a{
+  text-decoration: none;
+  color: black;
+  font-weight: 600;
+}
+.App-footer .address a:hover{
+  color: rgb(230 64 93);
+}
+.App-footer .address img{
+  margin-left: 10px;
+  width: 20px;
+  height: 20px;
+}
+
