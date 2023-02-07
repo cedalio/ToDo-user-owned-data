@@ -22,6 +22,8 @@ import Modal from '@mui/material/Modal';
 import Fade from '@mui/material/Fade';
 import Typography from '@mui/material/Typography';
 
+import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
+
 const style = {
   position: 'absolute' as 'absolute',
   top: '50%',
@@ -53,7 +55,8 @@ const ethereumClient = new EthereumClient(wagmiClient, chains);
 
 export default function App() {
   const [deployed, setDeployed] = React.useState(false);
-  const [contractAddress, setContractAddress] = React.useState<string|undefined>();
+  const [uri, setUri] = React.useState('');
+  const [contractAddress, setContractAddress] = React.useState<string | undefined>();
   const projectId = String(process.env.REACT_APP_WC_PROJECT_ID)
   const { address } = useAccount()
   const [open, setOpen] = React.useState(false);
@@ -66,10 +69,11 @@ export default function App() {
   }
 
   useEffect(() => {
+    setDeployed(Boolean(localStorage.getItem('deployed')))
     TagManager.initialize(tagManagerArgs)
   }, [])
 
-  function requestDeployToGateway(address:string) {
+  function requestDeployToGateway(address: string) {
     const url = `${process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL}/deploy`
     const payload = {
       email: "example.com",
@@ -96,6 +100,7 @@ export default function App() {
       setContractAddress(response.data.contract_address)
       setDeployed(true)
       setOpen(false)
+      setUri(`${String(process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL)}/${response.data.deployment_id}/graphql`)
     })
       .catch(function (error: any) {
         console.log(error);
@@ -104,13 +109,21 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (address) {
+    if(deployed){
+      return
+    }
+    else if (address) {
       requestDeployToGateway(address)
     }
   }, [address])
 
+  const client = new ApolloClient({
+    uri,
+    cache: new InMemoryCache()
+  });
+
   return (
-    <>
+    <ApolloProvider client={client}>
       <div className="App">
         <WagmiConfig client={wagmiClient}>
           <Header />
@@ -122,7 +135,6 @@ export default function App() {
               <img className="gif" src="home-gif.gif" alt="explained gif" />
             </div>
           </div>
-          {/* {address ? <DeployButton /> : null} */}
           {deployed ? <ListComponent address={address} /> : null}
           <Web3Modal
             projectId={projectId}
@@ -150,9 +162,9 @@ export default function App() {
               </Box>
             </Fade>
           </Modal>
-          <Footer contractAddress={contractAddress}/>
+          <Footer contractAddress={contractAddress} />
         </WagmiConfig>
       </div>
-    </>
+    </ApolloProvider>
   );
 }
