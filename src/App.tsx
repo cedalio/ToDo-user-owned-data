@@ -53,6 +53,7 @@ const ethereumClient = new EthereumClient(wagmiClient, chains);
 
 export default function App() {
   const [deployed, setDeployed] = React.useState(false);
+  const [contractAddress, setContractAddress] = React.useState<string|undefined>();
   const projectId = String(process.env.REACT_APP_WC_PROJECT_ID)
   const { address } = useAccount()
   const [open, setOpen] = React.useState(false);
@@ -92,6 +93,7 @@ export default function App() {
     ).then(function (response: any) {
       localStorage.setItem('deploymentId', response.data.deployment_id);
       localStorage.setItem('contractAddress', response.data.contract_address);
+      setContractAddress(response.data.contract_address)
       setDeployed(true)
       setOpen(false)
     })
@@ -148,7 +150,7 @@ export default function App() {
               </Box>
             </Fade>
           </Modal>
-          <Footer />
+          <Footer contractAddress={contractAddress}/>
         </WagmiConfig>
       </div>
     </>
