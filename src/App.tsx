@@ -69,7 +69,6 @@ export default function App() {
   }
 
   useEffect(() => {
-    setDeployed(Boolean(localStorage.getItem('deployed')))
     TagManager.initialize(tagManagerArgs)
   }, [])
 
@@ -97,6 +96,8 @@ export default function App() {
     ).then(function (response: any) {
       localStorage.setItem('deploymentId', response.data.deployment_id);
       localStorage.setItem('contractAddress', response.data.contract_address);
+      localStorage.setItem('deploymentId', response.data.deployment_id);
+      localStorage.setItem('deployed', 'true');
       setContractAddress(response.data.contract_address)
       setDeployed(true)
       setOpen(false)
@@ -109,11 +110,18 @@ export default function App() {
   }
 
   useEffect(() => {
-    if(deployed){
-      return
+    const deployed = Boolean(localStorage.getItem('deployed'))
+    const contractAddress = localStorage.getItem('contractAddress')
+    const deploymentId = localStorage.getItem('deploymentId')
+    if(deployed && contractAddress && deploymentId){
+      setUri(`${String(process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL)}/${deploymentId}/graphql`)
+      setDeployed(deployed)
     }
     else if (address) {
       requestDeployToGateway(address)
+    }
+    else{
+      return
     }
   }, [address])
 
