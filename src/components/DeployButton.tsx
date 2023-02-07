@@ -31,7 +31,7 @@ export default function DeployButton() {
     }
 
     return (
-        <button>
+        <button onClick={requestDeployToGateway}>
             DEPLOY YOUR SCHEMA
         </button>
 
