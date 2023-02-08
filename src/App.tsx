@@ -21,6 +21,7 @@ import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Fade from '@mui/material/Fade';
 import Typography from '@mui/material/Typography';
+import ReactGA from 'react-ga';
 
 import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 
@@ -39,6 +40,7 @@ const style = {
 const chains = [polygonMumbai];
 
 const projectId = String(process.env.REACT_APP_WC_PROJECT_ID)
+const TRACKING_ID = String(process.env.REACT_APP_TRACKING_ID)
 
 // Wagmi client
 const { provider } = configureChains(chains, [
@@ -130,6 +132,8 @@ export default function App() {
     cache: new InMemoryCache()
   });
 
+  ReactGA.initialize(TRACKING_ID);
+  
   return (
     <ApolloProvider client={client}>
       <div className="App">
