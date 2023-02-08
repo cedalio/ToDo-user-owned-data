@@ -118,6 +118,7 @@ export default function App() {
     if(deployed && contractAddress && deploymentId){
       setUri(`${String(process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL)}/${deploymentId}/graphql`)
       setDeployed(deployed)
+      setContractAddress(contractAddress)
     }
     else if (address) {
       requestDeployToGateway(address)
@@ -133,7 +134,7 @@ export default function App() {
   });
 
   ReactGA.initialize(TRACKING_ID);
-  
+
   return (
     <ApolloProvider client={client}>
       <div className="App">
