@@ -1,0 +1,9 @@
+type Todo {
+    id: UUID!
+    title: String!
+    description: String
+    priority: Int!
+    owner: String!
+    tags: [String!]
+    status: String
+}
