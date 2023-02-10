@@ -120,6 +120,9 @@
 .error-message{
   color: #e53867;
 }
+.error-message strong{
+  color:#FF2157
+}
 
 .delete-container{
   position: relative;
@@ -240,3 +243,29 @@ footer {
   height: 20px;
 }
 
+/* MODAl */
+.retry-button{
+  color: #FFFF;
+  font-weight: 700;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 27px;
+  width: 100px;
+  height: 40px;
+  background: linear-gradient(243.92deg, #FF7E36 16.43%, #FF2157 83.57%);
+  border-radius: 2px;
+  border: none;
+  font-family: 'Urbanist';
+  font-style: normal;
+  font-size: 16px;
+  line-height: 19px;
+  text-align: center;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.retry-button:hover{
+  background: linear-gradient(243.92deg, #d3662b 16.43%, #cf1a47 83.57%);
+  cursor: pointer;
+}

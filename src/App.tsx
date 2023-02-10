@@ -22,6 +22,7 @@ import Modal from '@mui/material/Modal';
 import Fade from '@mui/material/Fade';
 import Typography from '@mui/material/Typography';
 import ReactGA from 'react-ga';
+import { Rings } from 'react-loader-spinner'
 
 import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 
@@ -32,9 +33,12 @@ const style = {
   transform: 'translate(-50%, -50%)',
   width: 400,
   bgcolor: 'background.paper',
-  border: '2px solid #000',
+  border: '2px solid #FF7D3A',
+  borderRadius: '10px',
   boxShadow: 24,
   p: 4,
+  display: "flex",
+  flexDirection: "column",
 };
 
 const chains = [polygonMumbai];
@@ -62,7 +66,9 @@ export default function App() {
   const projectId = String(process.env.REACT_APP_WC_PROJECT_ID)
   const { address } = useAccount()
   const [open, setOpen] = React.useState(false);
+  const [response, setResponse] = React.useState("");
   const handleClose = () => setOpen(false);
+  
 
   const tagManagerArgs = {
     gtmId: String(process.env.REACT_APP_GOOGLE_TAG_MANAGER_ID),
@@ -103,19 +109,25 @@ export default function App() {
       setContractAddress(response.data.contract_address)
       setDeployed(true)
       setOpen(false)
+      setResponse("success")
       setUri(`${String(process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL)}/${response.data.deployment_id}/graphql`)
     })
       .catch(function (error: any) {
         console.log(error);
-        setOpen(false)
+        setResponse("error")
       })
+  }
+
+  function redeploy(){
+    setResponse("")
+    return requestDeployToGateway(String(address))
   }
 
   useEffect(() => {
     const deployed = Boolean(localStorage.getItem('deployed'))
     const contractAddress = localStorage.getItem('contractAddress')
     const deploymentId = localStorage.getItem('deploymentId')
-    if(deployed && contractAddress && deploymentId){
+    if (deployed && contractAddress && deploymentId) {
       setUri(`${String(process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL)}/${deploymentId}/graphql`)
       setDeployed(deployed)
       setContractAddress(contractAddress)
@@ -123,7 +135,7 @@ export default function App() {
     else if (address) {
       requestDeployToGateway(address)
     }
-    else{
+    else {
       return
     }
   }, [address])
@@ -134,6 +146,34 @@ export default function App() {
   });
 
   ReactGA.initialize(TRACKING_ID);
+
+  const Loader = () => {
+    if(response === "error"){
+      return (
+          <div className="loader-layer" style={{justifyContent: 'center', display:"flex", flexDirection:"column"}}>
+              <p className='error-message' style={{textTransform:'uppercase', textAlign:"center", color:"black", fontWeight:"200"}}>We had a <strong> problem </strong>trying to deploy please <strong>retry</strong>.</p>
+              <button className="retry-button" onClick={redeploy}>RETRY</button>
+          </div>
+      )
+    }
+    else{
+      return (
+          <div className="loader-layer" style={{justifyContent: 'center'}}>
+              <Rings
+                  height="100"
+                  width="100"
+                  radius={2}
+                  color="#FF7D3A"
+                  ariaLabel="puff-loading"
+                  wrapperStyle={{}}
+                  wrapperClass=""
+                  visible={true}
+              />
+          </div>
+      )
+    }
+        
+    }
 
   return (
     <ApolloProvider client={client}>
@@ -166,12 +206,13 @@ export default function App() {
           >
             <Fade in={open}>
               <Box sx={style}>
-                <Typography id="transition-modal-title" variant="h6" component="h2">
-                  We are deploying the schema in Polygon Mumbai!
+                <Typography id="transition-modal-title" variant="h6" component="h2" sx={{ fontWeight: "800", textAlign: "center" }}>
+                  Creating your account and deploying the Smart Contract Database in Polygon Mumbai!
                 </Typography>
-                <Typography id="transition-modal-description" sx={{ mt: 2 }}>
-                  This could take between 15 to 20 seconds, please don't close the window
+                <Typography id="transition-modal-description" sx={{ mt: 2, textAlign: "center" }}>
+                  This could take between <strong> 15 to 30 seconds</strong> depending on the network congestion. Please <strong>don’t close the window.</strong>
                 </Typography>
+                <Loader/>
               </Box>
             </Fade>
           </Modal>
