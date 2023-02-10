@@ -88,8 +88,8 @@ export default function ListComponent(props: { address: string | undefined }) {
     }
 
     const defaultTodo = {
-        title: "This Is Your First ToDo Card!",
-        description: "Buy some food for my dog and change their water",
+        title: "Create your first To Do :D",
+        description: "Please create your first To Do item, this place holder will disappear after that",
         tags: ["market", "rutine"],
         priority: 1,
         id: "abcdefg12345",
