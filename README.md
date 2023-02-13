@@ -8,7 +8,7 @@
 ## Getting Started
 
 1. Run `npm install` at the root directory
-2. Create a `.env.development` with the smart contract address for this deployment from the sterp 3.
+2. Create a `.env.development` with this variables.
 ```
 REACT_APP_WC_PROJECT_ID=WALLET-CONNECT-ID
 GENERATE_SOURCEMAP=false
