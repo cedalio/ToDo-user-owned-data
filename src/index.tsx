@@ -15,7 +15,9 @@ const link = new HttpLink({
 });
 const client = new ApolloClient({
   link: link,
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    addTypename: false,
+  }),
 });
 
 const root = ReactDOM.createRoot(

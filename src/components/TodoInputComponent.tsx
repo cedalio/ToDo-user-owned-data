@@ -20,13 +20,16 @@ import { Rings } from 'react-loader-spinner'
 const CREATE_TODO = gql`
   mutation CreateTodo($title:String!, $description:String, $priority:Int!, $owner:String!,$tags:String, $status:String){
     createTodo(todo: {title: $title, description:$description, priority:$priority, owner:$owner, tags:$tags, status: $status }){
-        id
-        title
-        description
-        priority
-        owner
-        tags
-        status
+        txHash
+        todo{
+            id
+            title
+            description
+            priority
+            owner
+            tags
+            status
+        }
     }
   }
 `;
@@ -63,7 +66,7 @@ export default function TodoInputComponent(props: {
 
     React.useEffect(() => {
         if (data) {
-            props.setState(data.createTodo)
+            props.setState(data.createTodo.todo)
             clearInputs()
             setTitleError(false)
             setDescriptionError(false)

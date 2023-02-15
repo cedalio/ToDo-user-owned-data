@@ -142,7 +142,9 @@ export default function App() {
 
   const client = new ApolloClient({
     uri,
-    cache: new InMemoryCache()
+    cache: new InMemoryCache({
+      addTypename: false,
+    }),
   });
 
   ReactGA.initialize(TRACKING_ID);
