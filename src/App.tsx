@@ -9,7 +9,6 @@ import { Web3Modal } from "@web3modal/react";
 import { configureChains, createClient, WagmiConfig, useAccount } from "wagmi";
 import { polygonMumbai } from "wagmi/chains";
 import { Web3Button } from "@web3modal/react";
-import TagManager from 'react-gtm-module'
 import axios from "axios";
 
 import Header from "./components/Header";
@@ -69,17 +68,6 @@ export default function App() {
   const [response, setResponse] = React.useState("");
   const handleClose = () => setOpen(false);
   
-
-  const tagManagerArgs = {
-    gtmId: String(process.env.REACT_APP_GOOGLE_TAG_MANAGER_ID),
-    auth: process.env.REACT_APP_GOOGLE_TAG_MANAGER_AUTH,
-    preview: process.env.REACT_APP_GOOGLE_TAG_MANAGER_PREVIEW
-  }
-
-  useEffect(() => {
-    TagManager.initialize(tagManagerArgs)
-  }, [])
-
   function requestDeployToGateway(address: string) {
     const url = `${process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL}/deploy`
     const payload = {
