@@ -92,7 +92,6 @@ export default function App() {
     ).then(function (response: any) {
       localStorage.setItem('deploymentId', response.data.deployment_id);
       localStorage.setItem('contractAddress', response.data.contract_address);
-      localStorage.setItem('deploymentId', response.data.deployment_id);
       localStorage.setItem('deployed', 'true');
       setContractAddress(response.data.contract_address)
       setDeployed(true)
