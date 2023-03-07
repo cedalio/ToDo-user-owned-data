@@ -71,7 +71,7 @@ export default function App() {
   function requestDeployToGateway(address: string) {
     const url = `${process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL}/deploy`
     const payload = {
-      email: "example.com",
+      email: "todo-multi.cedalio.com",
       schema: `type Todo {
             id: UUID!
             title: String!
