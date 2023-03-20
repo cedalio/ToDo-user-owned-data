@@ -168,7 +168,9 @@ export default function App() {
       <div className="App">
         <Header />
         <div className={authenticated ? `button-container connected` : `button-container`} >
-          <button onClick={login} >LOGIN TO DEPLOY</button>
+          {authenticated
+            ? <button className="logged-icon">{user?.wallet?.address}</button>
+            : <button className="login-button" onClick={login} >LOGIN TO DEPLOY</button>}
         </div>
         <div className="gif-container" style={authenticated ? { display: 'none' } : { display: 'flex' }} >
           <div className="web">

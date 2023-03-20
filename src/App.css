@@ -269,3 +269,55 @@ footer {
   background: linear-gradient(243.92deg, #d3662b 16.43%, #cf1a47 83.57%);
   cursor: pointer;
 }
+
+/* LOGIN BUTTON  */
+.login-button {
+  color: #FFFF;
+  font-weight: 700;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 27px;
+  width: 225px;
+  height: 50px;
+  background: linear-gradient(243.92deg, #FF7E36 16.43%, #FF2157 83.57%);
+  border-radius: 2px;
+  border: none;
+  font-family: 'Urbanist';
+  font-style: normal;
+  font-size: 16px;
+  line-height: 19px;
+  text-align: center;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.login-button:hover {
+  background: linear-gradient(243.92deg, #d86b30 16.43%, #db1d4d 83.57%);
+  cursor: pointer;
+}
+
+.logged-icon{
+  color: #FFFF;
+  font-weight: 700;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 5px 17px;
+  width: fit-content;
+  height: 50px;
+  background: linear-gradient(243.92deg, #3676ff 16.43%, #FF2157 83.57%);
+  border-radius: 7px;
+  border: none;
+  font-family: 'Urbanist';
+  font-style: normal;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.logged-icon:hover {
+  background: linear-gradient(243.92deg, #d86b30 16.43%, #db1d4d 83.57%);
+  cursor: pointer;
+}
