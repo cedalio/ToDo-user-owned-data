@@ -7,9 +7,11 @@ import {
 } from "@web3modal/ethereum";
 import { Web3Modal } from "@web3modal/react";
 import { configureChains, createClient, WagmiConfig, useAccount } from "wagmi";
+import SignClient from "@walletconnect/sign-client";
 import { polygonMumbai } from "wagmi/chains";
 import { Web3Button } from "@web3modal/react";
 import axios from "axios";
+import Web3 from "web3";
 
 import Header from "./components/Header";
 import ListComponent from "./components/ListComponent";
@@ -58,6 +60,8 @@ const wagmiClient = createClient({
 // Web3Modal Ethereum Client
 const ethereumClient = new EthereumClient(wagmiClient, chains);
 
+const web3Provider = new Web3(Web3.givenProvider);
+
 export default function App() {
   const [deployed, setDeployed] = React.useState(false);
   const [uri, setUri] = React.useState('');
@@ -67,6 +71,24 @@ export default function App() {
   const [open, setOpen] = React.useState(false);
   const [response, setResponse] = React.useState("");
   const handleClose = () => setOpen(false);
+
+
+
+  async function startSignClient() {
+    const signClient = await SignClient.init({
+      projectId: projectId
+    })
+    return signClient;
+    // eslint-disable-next-line no-empty-pattern
+  }
+
+  startSignClient().then((signClient) => {
+    console.log("algo")
+    signClient.on("session_update", ({ }) => {
+      console.log("OTRA COSA")
+    })
+  })
+
 
   async function requestDeployToGateway(address: string) {
     const url = `${process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL}/deploy`
@@ -87,8 +109,8 @@ export default function App() {
       network: "polygon:mumbai"
     }
     setOpen(true)
-    const nounce = await getNounce()
-    const token = await getToken(nounce, address)
+    const nonce = await getNonce()
+    const token = await getToken(nonce, address)
     console.log(token)
 
     // axios.post(
@@ -109,22 +131,27 @@ export default function App() {
     //   })
   }
 
-  async function getNounce() {
+  async function getNonce() {
     const url = `${process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL}/auth`
-    const payload = {}
     const response = await axios.post(
-      url,payload
+      url
     )
-    return response.data.nounce
+    return response.data.nonce
   }
 
-  async function getToken(nounce: string, address: string) {
+  async function getToken(nonce: string, address: string) {
+    const message = "TODO"
+    const messageToSign = message + nonce
+    console.log(messageToSign)
+
+    const signature = await web3Provider.eth.personal.sign(messageToSign, address, "");
+
     const url = `${process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL}/auth/verify`
     const payload = {
-      "message": "Authenticate the todo app",
+      "message": message,
       "account": address,
-      nounce,
-      "signature": ""
+      nonce,
+      "signature": signature.slice(2)
     }
 
     const response = await axios.post(
@@ -189,7 +216,6 @@ export default function App() {
         </div>
       )
     }
-
   }
 
   return (
