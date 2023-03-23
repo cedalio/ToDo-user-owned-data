@@ -188,7 +188,9 @@ export default function App() {
 
   const client = new ApolloClient({
     link: authLink.concat(httpLink), // Chain it with the HttpLink
-    cache: new InMemoryCache()
+    cache: new InMemoryCache({
+      addTypename: false,
+    })
   });
 
   ReactGA.initialize(TRACKING_ID);
