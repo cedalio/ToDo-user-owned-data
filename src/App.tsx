@@ -67,8 +67,8 @@ export default function App() {
   const [open, setOpen] = React.useState(false);
   const [response, setResponse] = React.useState("");
   const handleClose = () => setOpen(false);
-  
-  function requestDeployToGateway(address: string) {
+
+  async function requestDeployToGateway(address: string) {
     const url = `${process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL}/deploy`
     const payload = {
       email: "todo-multi.cedalio.com",
@@ -87,25 +87,53 @@ export default function App() {
       network: "polygon:mumbai"
     }
     setOpen(true)
-    axios.post(
-      url, payload
-    ).then(function (response: any) {
-      localStorage.setItem('deploymentId', response.data.deployment_id);
-      localStorage.setItem('contractAddress', response.data.contract_address);
-      localStorage.setItem('deployed', 'true');
-      setContractAddress(response.data.contract_address)
-      setDeployed(true)
-      setOpen(false)
-      setResponse("success")
-      setUri(`${String(process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL)}/${response.data.deployment_id}/graphql`)
-    })
-      .catch(function (error: any) {
-        console.log(error);
-        setResponse("error")
-      })
+    const nounce = await getNounce()
+    const token = await getToken(nounce, address)
+    console.log(token)
+
+    // axios.post(
+    //   url, payload
+    // ).then(function (response: any) {
+    //   localStorage.setItem('deploymentId', response.data.deployment_id);
+    //   localStorage.setItem('contractAddress', response.data.contract_address);
+    //   localStorage.setItem('deployed', 'true');
+    //   setContractAddress(response.data.contract_address)
+    //   setDeployed(true)
+    //   setOpen(false)
+    //   setResponse("success")
+    //   setUri(`${String(process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL)}/${response.data.deployment_id}/graphql`)
+    // })
+    //   .catch(function (error: any) {
+    //     console.log(error);
+    //     setResponse("error")
+    //   })
   }
 
-  function redeploy(){
+  async function getNounce() {
+    const url = `${process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL}/auth`
+    const payload = {}
+    const response = await axios.post(
+      url,payload
+    )
+    return response.data.nounce
+  }
+
+  async function getToken(nounce: string, address: string) {
+    const url = `${process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL}/auth/verify`
+    const payload = {
+      "message": "Authenticate the todo app",
+      "account": address,
+      nounce,
+      "signature": ""
+    }
+
+    const response = await axios.post(
+      url, payload
+    )
+    return response
+  }
+
+  function redeploy() {
     setResponse("")
     return requestDeployToGateway(String(address))
   }
@@ -137,32 +165,32 @@ export default function App() {
   ReactGA.initialize(TRACKING_ID);
 
   const Loader = () => {
-    if(response === "error"){
+    if (response === "error") {
       return (
-          <div className="loader-layer" style={{justifyContent: 'center', display:"flex", flexDirection:"column"}}>
-              <p className='error-message' style={{textTransform:'uppercase', textAlign:"center", color:"black", fontWeight:"200"}}>We had a <strong> problem </strong>trying to deploy please <strong>retry</strong>.</p>
-              <button className="retry-button" onClick={redeploy}>RETRY</button>
-          </div>
+        <div className="loader-layer" style={{ justifyContent: 'center', display: "flex", flexDirection: "column" }}>
+          <p className='error-message' style={{ textTransform: 'uppercase', textAlign: "center", color: "black", fontWeight: "200" }}>We had a <strong> problem </strong>trying to deploy please <strong>retry</strong>.</p>
+          <button className="retry-button" onClick={redeploy}>RETRY</button>
+        </div>
       )
     }
-    else{
+    else {
       return (
-          <div className="loader-layer" style={{justifyContent: 'center'}}>
-              <Rings
-                  height="100"
-                  width="100"
-                  radius={2}
-                  color="#FF7D3A"
-                  ariaLabel="puff-loading"
-                  wrapperStyle={{}}
-                  wrapperClass=""
-                  visible={true}
-              />
-          </div>
+        <div className="loader-layer" style={{ justifyContent: 'center' }}>
+          <Rings
+            height="100"
+            width="100"
+            radius={2}
+            color="#FF7D3A"
+            ariaLabel="puff-loading"
+            wrapperStyle={{}}
+            wrapperClass=""
+            visible={true}
+          />
+        </div>
       )
     }
-        
-    }
+
+  }
 
   return (
     <ApolloProvider client={client}>
@@ -201,7 +229,7 @@ export default function App() {
                 <Typography id="transition-modal-description" sx={{ mt: 2, textAlign: "center" }}>
                   This could take between <strong> 15 to 30 seconds</strong> depending on the network congestion. Please <strong>don’t close the window.</strong>
                 </Typography>
-                <Loader/>
+                <Loader />
               </Box>
             </Fade>
           </Modal>
