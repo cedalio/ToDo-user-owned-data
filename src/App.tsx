@@ -7,7 +7,6 @@ import {
 } from "@web3modal/ethereum";
 import { Web3Modal } from "@web3modal/react";
 import { configureChains, createClient, WagmiConfig, useAccount } from "wagmi";
-import SignClient from "@walletconnect/sign-client";
 import { polygonMumbai } from "wagmi/chains";
 import { Web3Button } from "@web3modal/react";
 import axios from "axios";
