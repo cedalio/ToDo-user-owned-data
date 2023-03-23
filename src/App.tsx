@@ -111,24 +111,27 @@ export default function App() {
     setOpen(true)
     const nonce = await getNonce()
     const token = await getToken(nonce, address)
-    console.log(token)
 
-    // axios.post(
-    //   url, payload
-    // ).then(function (response: any) {
-    //   localStorage.setItem('deploymentId', response.data.deployment_id);
-    //   localStorage.setItem('contractAddress', response.data.contract_address);
-    //   localStorage.setItem('deployed', 'true');
-    //   setContractAddress(response.data.contract_address)
-    //   setDeployed(true)
-    //   setOpen(false)
-    //   setResponse("success")
-    //   setUri(`${String(process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL)}/${response.data.deployment_id}/graphql`)
-    // })
-    //   .catch(function (error: any) {
-    //     console.log(error);
-    //     setResponse("error")
-    //   })
+    axios.post(
+      url, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    ).then(function (response: any) {
+      localStorage.setItem('deploymentId', response.data.deployment_id);
+      localStorage.setItem('contractAddress', response.data.contract_address);
+      localStorage.setItem('deployed', 'true');
+      setContractAddress(response.data.contract_address)
+      setDeployed(true)
+      setOpen(false)
+      setResponse("success")
+      setUri(`${String(process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL)}/${response.data.deployment_id}/graphql`)
+    })
+      .catch(function (error: any) {
+        console.log(error);
+        setResponse("error")
+      })
   }
 
   async function getNonce() {
@@ -157,7 +160,7 @@ export default function App() {
     const response = await axios.post(
       url, payload
     )
-    return response
+    return response.data.token
   }
 
   function redeploy() {
