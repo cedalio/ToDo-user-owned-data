@@ -25,7 +25,7 @@ import Typography from '@mui/material/Typography';
 import ReactGA from 'react-ga';
 import { Rings } from 'react-loader-spinner'
 
-import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
+import { ApolloClient, InMemoryCache, ApolloProvider, HttpLink, ApolloLink } from '@apollo/client';
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -70,25 +70,8 @@ export default function App() {
   const { address } = useAccount()
   const [open, setOpen] = React.useState(false);
   const [response, setResponse] = React.useState("");
+  const [token, setToken] = React.useState();
   const handleClose = () => setOpen(false);
-
-
-
-  async function startSignClient() {
-    const signClient = await SignClient.init({
-      projectId: projectId
-    })
-    return signClient;
-    // eslint-disable-next-line no-empty-pattern
-  }
-
-  startSignClient().then((signClient) => {
-    console.log("algo")
-    signClient.on("session_update", ({ }) => {
-      console.log("OTRA COSA")
-    })
-  })
-
 
   async function requestDeployToGateway(address: string) {
     const url = `${process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL}/deploy`
@@ -111,13 +94,15 @@ export default function App() {
     setOpen(true)
     const nonce = await getNonce()
     const token = await getToken(nonce, address)
+    setToken(token)
+    localStorage.setItem('auth_token', token)
 
     axios.post(
       url, payload, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      headers: {
+        Authorization: `Bearer ${token}`
       }
+    }
     ).then(function (response: any) {
       localStorage.setItem('deploymentId', response.data.deployment_id);
       localStorage.setItem('contractAddress', response.data.contract_address);
@@ -145,7 +130,6 @@ export default function App() {
   async function getToken(nonce: string, address: string) {
     const message = "TODO"
     const messageToSign = message + nonce
-    console.log(messageToSign)
 
     const signature = await web3Provider.eth.personal.sign(messageToSign, address, "");
 
@@ -172,6 +156,7 @@ export default function App() {
     const deployed = Boolean(localStorage.getItem('deployed'))
     const contractAddress = localStorage.getItem('contractAddress')
     const deploymentId = localStorage.getItem('deploymentId')
+
     if (deployed && contractAddress && deploymentId) {
       setUri(`${String(process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL)}/${deploymentId}/graphql`)
       setDeployed(deployed)
@@ -185,11 +170,25 @@ export default function App() {
     }
   }, [address])
 
+  const httpLink = new HttpLink({ uri: uri });
+  const authLink = new ApolloLink((operation, forward) => {
+    // Retrieve the authorization token from local storage.
+    const token = localStorage.getItem('auth_token');
+
+    // Use the setContext method to set the HTTP headers.
+    operation.setContext({
+      headers: {
+        authorization: token ? `Bearer ${token}` : ''
+      }
+    });
+
+    // Call the next link in the middleware chain.
+    return forward(operation);
+  });
+
   const client = new ApolloClient({
-    uri,
-    cache: new InMemoryCache({
-      addTypename: false,
-    }),
+    link: authLink.concat(httpLink), // Chain it with the HttpLink
+    cache: new InMemoryCache()
   });
 
   ReactGA.initialize(TRACKING_ID);

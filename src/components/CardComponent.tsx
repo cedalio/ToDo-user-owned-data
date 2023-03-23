@@ -44,7 +44,6 @@ export default function CardComponent(props: { setState: React.Dispatch<React.Se
 
     React.useEffect(() => {
         if (data) {
-            console.log("!!!!!!!!!!!!!!!!!", data)
             props.onUpdateTodo(data.updateTodo.todo.id, data.updateTodo.todo.status)
         }
     }, [data])

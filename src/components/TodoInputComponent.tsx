@@ -66,6 +66,7 @@ export default function TodoInputComponent(props: {
 
     React.useEffect(() => {
         if (data) {
+            console.log(data)
             props.setState(data.createTodo.todo)
             clearInputs()
             setTitleError(false)
