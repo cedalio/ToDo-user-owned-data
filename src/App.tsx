@@ -81,7 +81,6 @@ export default function App() {
             title: String!
             description: String
             priority: Int!
-            owner: String!
             tags: [String!]
             status: String
           }

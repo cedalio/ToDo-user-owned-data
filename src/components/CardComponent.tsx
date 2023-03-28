@@ -16,7 +16,6 @@ const UPDATE_TODO = gql`
             title
             description
             priority
-            owner
             tags
             status
         }
@@ -30,7 +29,6 @@ type Todo = {
     tags: Array<string>,
     priority: number,
     id: string,
-    owner: string,
     status: string
 }
 
