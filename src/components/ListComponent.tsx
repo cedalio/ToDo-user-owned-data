@@ -22,7 +22,6 @@ type Todo = {
     tags: Array<string>,
     priority: number,
     id: string,
-    owner: string,
     status: string
 }
 
@@ -38,7 +37,6 @@ const GET_TODOS = gql`
             title
             description
             priority
-            owner
             tags
             status
         }
@@ -93,7 +91,6 @@ export default function ListComponent(props: { address: string | undefined }) {
         tags: ["market", "rutine"],
         priority: 1,
         id: "abcdefg12345",
-        owner: "abcdefg123",
         status: "ready"
     }
 
@@ -115,7 +112,7 @@ export default function ListComponent(props: { address: string | undefined }) {
     }
 
     const displayTodos = () => {
-        const displayableTodos = todos.filter((todo) => todo.status === "ready" && todo.owner === ownerAddress)
+        const displayableTodos = todos.filter((todo) => todo.status === "ready")
         if (displayableTodos.length === 0) {
             return <CardComponent key="default" todo={defaultTodo}  setState={setTodos} index={1} updateState={update} onUpdateTodo={onUpdateTodo} default={true} onError={onError} />;
         }

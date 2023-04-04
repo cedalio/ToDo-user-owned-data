@@ -18,15 +18,14 @@ import { Rings } from 'react-loader-spinner'
 
 //GRAPHQL query template, this will be replaced by the variables
 const CREATE_TODO = gql`
-  mutation CreateTodo($title:String!, $description:String, $priority:Int!, $owner:String!,$tags:String, $status:String){
-    createTodo(todo: {title: $title, description:$description, priority:$priority, owner:$owner, tags:$tags, status: $status }){
+  mutation CreateTodo($title:String!, $description:String, $priority:Int!, $tags:String, $status:String){
+    createTodo(todo: {title: $title, description:$description, priority:$priority, tags:$tags, status: $status }){
         txHash
         todo{
             id
             title
             description
             priority
-            owner
             tags
             status
         }
@@ -66,6 +65,7 @@ export default function TodoInputComponent(props: {
 
     React.useEffect(() => {
         if (data) {
+            console.log(data)
             props.setState(data.createTodo.todo)
             clearInputs()
             setTitleError(false)
@@ -226,7 +226,7 @@ export default function TodoInputComponent(props: {
                 </Fab>
                 <Fab disabled={disableButtons} onClick={(e) => {
                     if (title && description) {
-                        createTodo({ variables: { title: title, description: description, priority: priority, owner: props.address, tags: tag, status: "ready" } })
+                        createTodo({ variables: { title: title, description: description, priority: priority, tags: tag, status: "ready" } })
                     } else {
                         setTitleError(true)
                         setDescriptionError(true)

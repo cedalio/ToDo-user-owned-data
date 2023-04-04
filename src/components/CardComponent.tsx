@@ -16,7 +16,6 @@ const UPDATE_TODO = gql`
             title
             description
             priority
-            owner
             tags
             status
         }
@@ -30,7 +29,6 @@ type Todo = {
     tags: Array<string>,
     priority: number,
     id: string,
-    owner: string,
     status: string
 }
 
@@ -44,7 +42,6 @@ export default function CardComponent(props: { setState: React.Dispatch<React.Se
 
     React.useEffect(() => {
         if (data) {
-            console.log("!!!!!!!!!!!!!!!!!", data)
             props.onUpdateTodo(data.updateTodo.todo.id, data.updateTodo.todo.status)
         }
     }, [data])
