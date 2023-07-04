@@ -22,7 +22,7 @@ Step 2: Create a `.env.development` file with the following variables:
 REACT_APP_WC_PROJECT_ID=WALLET-CONNECT-ID
 GENERATE_SOURCEMAP=false
 REACT_APP_NET_SCAN_BASE=https://mumbai.polygonscan.com/address/ (or your selected network scan)
-REACT_APP_PUSHER_KEY=PUSHER-CHANNEL
+REACT_APP_PUSHER_KEY=PUSHER-KEY
 REACT_APP_PROJECT_URL= the url you get from the studio
 ```
 
