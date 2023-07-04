@@ -31,8 +31,10 @@ type Update = {
 }
 
 const GET_TODOS = gql`
-  query GetTodos{
-        allTodos {
+    query GetTodos{
+    todoCollection(first:10){
+        edges{
+        node{
             id
             title
             description
@@ -40,7 +42,9 @@ const GET_TODOS = gql`
             tags
             status
         }
-  }
+        }
+    }
+    }
 `;
 
 const dragColors = {
@@ -91,14 +95,19 @@ export default function ListComponent(props: { address: string | undefined }) {
         tags: ["market", "rutine"],
         priority: 1,
         id: "abcdefg12345",
-        status: "ready"
+        status: "READY"
     }
 
     const { loading, error, data } = useQuery(GET_TODOS);
 
     React.useEffect(() => {
-        if (data) setTodos(data.allTodos);
-    }, [data]);
+        if (data) {
+            const extractedTodos = data.todoCollection.edges.map((edge: any) => edge.node);
+            setTodos(extractedTodos);
+          } else {
+            setTodos([]); 
+          }
+        }, [data]);
 
     React.useEffect(() => {
         if (newTodo) {
@@ -112,7 +121,7 @@ export default function ListComponent(props: { address: string | undefined }) {
     }
 
     const displayTodos = () => {
-        const displayableTodos = todos.filter((todo) => todo.status === "ready")
+        const displayableTodos = todos.filter((todo) => todo.status === "READY")
         if (displayableTodos.length === 0) {
             return <CardComponent key="default" todo={defaultTodo}  setState={setTodos} index={1} updateState={update} onUpdateTodo={onUpdateTodo} default={true} onError={onError} />;
         }
