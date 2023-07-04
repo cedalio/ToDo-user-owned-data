@@ -11,7 +11,9 @@
 Step 1: Go to our [studio](https://studio.cedalio.com) and follow these steps:
 
 A. Create a project with the "todo" schema of the library layer.
+
 B. Deploy the schema.
+
 C. Copy the URL and set it as `REACT_APP_PROJECT_URL` in the `.env.development` file.
 
 Step 2: Create a `.env.development` file with the following variables:
