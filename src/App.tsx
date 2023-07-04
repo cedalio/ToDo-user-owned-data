@@ -23,6 +23,7 @@ import Fade from '@mui/material/Fade';
 import Typography from '@mui/material/Typography';
 import ReactGA from 'react-ga';
 import { Rings } from 'react-loader-spinner'
+import Pusher from 'pusher-js';
 
 import { ApolloClient, InMemoryCache, ApolloProvider, HttpLink, ApolloLink } from '@apollo/client';
 
@@ -63,6 +64,7 @@ const web3Provider = new Web3(Web3.givenProvider);
 
 export default function App() {
   const [deployed, setDeployed] = React.useState(false);
+  const [deployProcess, setDeployProcess] = React.useState(false);
   const [uri, setUri] = React.useState('');
   const [contractAddress, setContractAddress] = React.useState<string | undefined>();
   const projectId = String(process.env.REACT_APP_WC_PROJECT_ID)
@@ -71,9 +73,11 @@ export default function App() {
   const [response, setResponse] = React.useState("");
   const [token, setToken] = React.useState();
   const handleClose = () => setOpen(false);
+  const [deploymentId, setDeploymentId] =React.useState<string>()
+
 
   async function requestDeployToGateway(address: string) {
-    const url = `${process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL}/deploy`
+    const url = `${process.env.REACT_APP_PROJECT_URL}/deploy`
     const payload = {
       email: "todo-multi.cedalio.com",
       schema: `type Todo {
@@ -106,10 +110,11 @@ export default function App() {
       localStorage.setItem('contractAddress', response.data.contract_address);
       localStorage.setItem('deployed', 'true');
       setContractAddress(response.data.contract_address)
-      setDeployed(true)
       setOpen(false)
       setResponse("success")
-      setUri(`${String(process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL)}/${response.data.deployment_id}/graphql`)
+      setDeploymentId(response.data.deployment_id)
+      setDeployProcess(true)
+      setUri(`${String(process.env.REACT_APP_PROJECT_URL)}/${response.data.deployment_id}/graphql`)
     })
       .catch(function (error: any) {
         console.log(error);
@@ -118,7 +123,7 @@ export default function App() {
   }
 
   async function getNonce() {
-    const url = `${process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL}/auth`
+    const url = `${process.env.REACT_APP_PROJECT_URL}/auth`
     const response = await axios.post(
       url
     )
@@ -131,7 +136,7 @@ export default function App() {
 
     const signature = await web3Provider.eth.personal.sign(messageToSign, address, "");
 
-    const url = `${process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL}/auth/verify`
+    const url = `${process.env.REACT_APP_PROJECT_URL}/auth/verify`
     const payload = {
       "message": message,
       "account": address,
@@ -156,7 +161,7 @@ export default function App() {
     const deploymentId = localStorage.getItem('deploymentId')
 
     if (deployed && contractAddress && deploymentId) {
-      setUri(`${String(process.env.REACT_APP_GRAPHQL_GATEWAY_BASE_URL)}/${deploymentId}/graphql`)
+      setUri(`${String(process.env.REACT_APP_PROJECT_URL)}/${deploymentId}/graphql`)
       setDeployed(deployed)
       setContractAddress(contractAddress)
     }
@@ -183,6 +188,29 @@ export default function App() {
     // Call the next link in the middleware chain.
     return forward(operation);
   });
+  
+  useEffect(()=>{
+    if(deployProcess){
+      bindPusherChannel()
+    }
+  }, [deployProcess])
+
+  function bindPusherChannel() {
+    var pusher = new Pusher(String(process.env.REACT_APP_PUSHER_KEY), {
+        cluster: 'us2'
+    });
+    const channelName = String(deploymentId)
+    var channel = pusher.subscribe(channelName);
+    channel.bind('DEPLOYMENT_STATUS_UPDATE', function (data: any) {
+        if (data.status == "READY") {
+          setDeployed(true)
+        }
+        else if (data.status == "FAILED") {
+          setResponse("error")
+        }
+    });
+}
+
 
   const client = new ApolloClient({
     link: authLink.concat(httpLink), // Chain it with the HttpLink
