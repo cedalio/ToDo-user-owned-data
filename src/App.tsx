@@ -110,7 +110,6 @@ export default function App() {
       localStorage.setItem('contractAddress', response.data.contract_address);
       localStorage.setItem('deployed', 'true');
       setContractAddress(response.data.contract_address)
-      setOpen(false)
       setResponse("success")
       setDeploymentId(response.data.deployment_id)
       setDeployProcess(true)
@@ -203,6 +202,7 @@ export default function App() {
     var channel = pusher.subscribe(channelName);
     channel.bind('DEPLOYMENT_STATUS_UPDATE', function (data: any) {
         if (data.status == "READY") {
+          setOpen(false)
           setDeployed(true)
         }
         else if (data.status == "FAILED") {
