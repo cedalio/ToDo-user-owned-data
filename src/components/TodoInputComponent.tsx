@@ -18,21 +18,19 @@ import { Rings } from 'react-loader-spinner'
 
 //GRAPHQL query template, this will be replaced by the variables
 const CREATE_TODO = gql`
-  mutation CreateTodo($title:String!, $description:String, $priority:Int!, $tags:String, $status:String){
-    createTodo(todo: {title: $title, description:$description, priority:$priority, tags:$tags, status: $status }){
-        txHash
-        todo{
-            id
-            title
-            description
-            priority
-            tags
-            status
-        }
+  mutation CreateTodo($title: String!, $description: String, $priority: Int!, $tags: [String!], $status: Status) {
+    todoCreate(input: { title: $title, description: $description, priority: $priority, tags: $tags, status: $status }) {
+      todo {
+        id
+        title
+        description
+        priority
+        tags
+        status
+      }
     }
   }
 `;
-
 //The TO-DO default if we dont have any
 const defaultTodo = {
     title: "This Is Your First ToDo Card!",
@@ -65,8 +63,7 @@ export default function TodoInputComponent(props: {
 
     React.useEffect(() => {
         if (data) {
-            console.log(data)
-            props.setState(data.createTodo.todo)
+            props.setState(data.todoCreate.todo)
             clearInputs()
             setTitleError(false)
             setDescriptionError(false)
@@ -226,7 +223,7 @@ export default function TodoInputComponent(props: {
                 </Fab>
                 <Fab disabled={disableButtons} onClick={(e) => {
                     if (title && description) {
-                        createTodo({ variables: { title: title, description: description, priority: priority, tags: tag, status: "ready" } })
+                        createTodo({ variables: { title: title, description: description, priority: priority, tags: tag, status: "READY" } })
                     } else {
                         setTitleError(true)
                         setDescriptionError(true)
