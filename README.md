@@ -10,7 +10,7 @@
 
 Step 1: Go to our [studio](https://studio.cedalio.com) and follow these steps:
 
-A. Create a project with the "todo" schema of the library layer.
+A. Create a project with the "todo" schema from the Cedalio Template Library.
 
 B. Deploy the schema.
 
