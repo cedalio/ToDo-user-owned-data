@@ -113,7 +113,7 @@ export default function App() {
       setResponse("success")
       setDeploymentId(response.data.deployment_id)
       setDeployProcess(true)
-      setUri(`${String(process.env.REACT_APP_PROJECT_URL)}/${response.data.deployment_id}/graphql`)
+      setUri(`${String(process.env.REACT_APP_PROJECT_URL)}/deployments/${response.data.deployment_id}/graphql`)
     })
       .catch(function (error: any) {
         console.log(error);
@@ -160,7 +160,7 @@ export default function App() {
     const deploymentId = localStorage.getItem('deploymentId')
 
     if (deployed && contractAddress && deploymentId) {
-      setUri(`${String(process.env.REACT_APP_PROJECT_URL)}/${deploymentId}/graphql`)
+      setUri(`${String(process.env.REACT_APP_PROJECT_URL)}/deployments/${deploymentId}/graphql`)
       setDeployed(deployed)
       setContractAddress(contractAddress)
     }
