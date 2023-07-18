@@ -2,8 +2,6 @@
 
 [Join our Discord Community](https://discord.gg/kSdhmb9UUT)
 
-[![Deploy to Cedalio](https://cedalio.com/images/deploy-schema-button-small.png)](https://studio.cedalio.com)
-
 </br>
 
 ## Getting Started
