@@ -9,24 +9,22 @@ import { HttpLink } from '@apollo/client';
 const link = new HttpLink({
   uri: String(process.env.REACT_APP_GRAPHQL_URL),
   headers: {
-    "Access-Control-Allow-Origin": "*",
-    "Content-Type": "application/json"
+    'Access-Control-Allow-Origin': '*',
+    'Content-Type': 'application/json'
   }
 });
 const client = new ApolloClient({
   link: link,
   cache: new InMemoryCache({
-    addTypename: false,
-  }),
+    addTypename: false
+  })
 });
 
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement
-);
+const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 root.render(
-    <ApolloProvider client={client}>
-      <App />
-    </ApolloProvider>,
+  <ApolloProvider client={client}>
+    <App />
+  </ApolloProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function
