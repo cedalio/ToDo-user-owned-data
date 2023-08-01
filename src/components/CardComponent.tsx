@@ -41,7 +41,7 @@ export default function CardComponent(props: {
   todo: Todo;
   index: any;
   updateState: Update | undefined;
-  onUpdateTodo: (id: number, status: string) => void;
+  onUpdateTodo: (id: string, status: string) => void;
   default: boolean;
   onError: () => void;
 }) {

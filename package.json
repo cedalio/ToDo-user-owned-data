@@ -38,8 +38,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "lint": "eslint --ext .js,.ts,.tsx .",
-    "lint-fix": "eslint --ext .js,.ts,.tsx . --fix",
+    "check-types": "tsc --noemit",
+    "lint": "eslint --ext .js,.ts,.tsx . && npm run check-types",
+    "lint-fix": "eslint --ext .js,.ts,.tsx . --fix && npm run check-types",
     "prepare": "husky install"
   },
   "eslintConfig": {
@@ -68,6 +69,7 @@
     "eslint-config-prettier": "^8.9.0",
     "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-react": "^7.33.1",
     "husky": "^8.0.0"
   }
 }
