@@ -1,12 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import { EthereumClient, modalConnectors, walletConnectProvider } from '@web3modal/ethereum';
 import { Web3Modal } from '@web3modal/react';
 import { configureChains, createClient, WagmiConfig, useAccount } from 'wagmi';
 import { polygonMumbai } from 'wagmi/chains';
 import { Web3Button } from '@web3modal/react';
-import axios from 'axios';
-import Web3 from 'web3';
+import CedalioSDK from '@cedalio/sdk-js';
 
 import Header from './components/Header';
 import ListComponent from './components/ListComponent';
@@ -19,9 +18,15 @@ import Fade from '@mui/material/Fade';
 import Typography from '@mui/material/Typography';
 import ReactGA from 'react-ga';
 import { Rings } from 'react-loader-spinner';
-import Pusher from 'pusher-js';
 
-import { ApolloClient, InMemoryCache, ApolloProvider, HttpLink, ApolloLink } from '@apollo/client';
+import {
+  ApolloClient,
+  InMemoryCache,
+  ApolloProvider,
+  HttpLink,
+  ApolloLink,
+  NormalizedCacheObject
+} from '@apollo/client';
 
 const style = {
   position: 'absolute' as const,
@@ -42,6 +47,7 @@ const chains = [polygonMumbai];
 
 const projectId = String(process.env.REACT_APP_WC_PROJECT_ID);
 const TRACKING_ID = String(process.env.REACT_APP_TRACKING_ID);
+const CEDALIO_PROJECT_ID = String(process.env.REACT_APP_CEDALIO_PROJECT_ID);
 
 // Wagmi client
 const { provider } = configureChains(chains, [walletConnectProvider({ projectId: projectId })]);
@@ -54,162 +60,130 @@ const wagmiClient = createClient({
 // Web3Modal Ethereum Client
 const ethereumClient = new EthereumClient(wagmiClient, chains);
 
-const web3Provider = new Web3(Web3.givenProvider);
-
 export default function App() {
-  const [deployed, setDeployed] = React.useState(false);
-  const [deployProcess, setDeployProcess] = React.useState(false);
-  const [uri, setUri] = React.useState('');
-  const [contractAddress, setContractAddress] = React.useState<string | undefined>();
+  const [contractAddress, setContractAddress] = useState<string | undefined>();
   const projectId = String(process.env.REACT_APP_WC_PROJECT_ID);
-  const { address } = useAccount();
-  const [open, setOpen] = React.useState(false);
-  const [response, setResponse] = React.useState('');
-  const [token, setToken] = React.useState();
-  const handleClose = () => setOpen(false);
-  const [deploymentId, setDeploymentId] = React.useState<string>();
+  const [cedalioSdk, setCedalioSDK] = useState<CedalioSDK>();
+  const [deployLoading, setDeployLoading] = useState(false);
+  const [deployError, setDeployError] = useState<string>();
+  const [deployed, setDeployed] = useState(false);
+  const [apolloClient, setApolloClient] = useState<ApolloClient<NormalizedCacheObject>>();
+  const [token, setToken] = useState<string>();
+  const { address } = useAccount({
+    onConnect: (data) => {
+      if (data.address) {
+        setCedalioSDK(new CedalioSDK({ projectId: CEDALIO_PROJECT_ID, address: data.address }));
+      }
+    }
+  });
 
-  async function requestDeployToGateway(address: string) {
-    const url = `${process.env.REACT_APP_PROJECT_URL}/deploy`;
-    const payload = {
-      email: 'todo-multi.cedalio.com',
-      schema: `type Todo {
-            id: UUID!
-            title: String!
-            description: String
-            priority: Int!
-            tags: [String!]
-            status: String
-          }
-          
-          `,
-      schema_owner: address,
-      network: 'polygon:mumbai'
-    };
-    setOpen(true);
-    const nonce = await getNonce();
-    const token = await getToken(nonce, address);
-    setToken(token);
-    localStorage.setItem('auth_token', token);
-
-    axios
-      .post(url, payload, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-      .then(function (response: any) {
-        localStorage.setItem('deploymentId', response.data.deployment_id);
-        localStorage.setItem('contractAddress', response.data.contract_address);
-        localStorage.setItem('deployed', 'true');
-        setContractAddress(response.data.contract_address);
-        setResponse('success');
-        setDeploymentId(response.data.deployment_id);
-        setDeployProcess(true);
-        setUri(
-          `${String(process.env.REACT_APP_PROJECT_URL)}/deployments/${response.data.deployment_id}/graphql`
-        );
-      })
-      .catch(function (error: any) {
-        console.log(error);
-        setResponse('error');
-      });
-  }
-
-  async function getNonce() {
-    const url = `${process.env.REACT_APP_PROJECT_URL}/auth`;
-    const response = await axios.post(url);
-    return response.data.nonce;
-  }
-
-  async function getToken(nonce: string, address: string) {
-    const message = 'TODO';
-    const messageToSign = message + nonce;
-
-    const signature = await web3Provider.eth.personal.sign(messageToSign, address, '');
-
-    const url = `${process.env.REACT_APP_PROJECT_URL}/auth/verify`;
-    const payload = {
-      message: message,
-      account: address,
-      nonce,
-      signature: signature.slice(2)
-    };
-
-    const response = await axios.post(url, payload);
-    return response.data.token;
-  }
-
-  function redeploy() {
-    setResponse('');
-    return requestDeployToGateway(String(address));
-  }
-
+  // Use saved token and deploymentId to avoid a new login
   useEffect(() => {
-    const deployed = Boolean(localStorage.getItem('deployed'));
-    const contractAddress = localStorage.getItem('contractAddress');
-    const deploymentId = localStorage.getItem('deploymentId');
-
-    if (deployed && contractAddress && deploymentId) {
-      setUri(`${String(process.env.REACT_APP_PROJECT_URL)}/deployments/${deploymentId}/graphql`);
-      setDeployed(deployed);
-      setContractAddress(contractAddress);
-    } else if (address) {
-      requestDeployToGateway(address);
-    } else {
+    if (!cedalioSdk) {
       return;
     }
-  }, [address]);
-
-  const httpLink = new HttpLink({ uri: uri });
-  const authLink = new ApolloLink((operation, forward) => {
-    // Retrieve the authorization token from local storage.
-    const token = localStorage.getItem('auth_token');
-
-    // Use the setContext method to set the HTTP headers.
-    operation.setContext({
-      headers: {
-        authorization: token ? `Bearer ${token}` : ''
-      }
-    });
-
-    // Call the next link in the middleware chain.
-    return forward(operation);
-  });
-
-  useEffect(() => {
-    if (deployProcess) {
-      bindPusherChannel();
+    const savedToken = localStorage.getItem('token');
+    if (savedToken) {
+      setToken(savedToken);
+      cedalioSdk?.setAuthToken(savedToken);
     }
-  }, [deployProcess]);
 
-  function bindPusherChannel() {
-    const pusher = new Pusher(String(process.env.REACT_APP_PUSHER_KEY), {
-      cluster: 'us2'
-    });
-    const channelName = String(deploymentId);
-    const channel = pusher.subscribe(channelName);
-    channel.bind('DEPLOYMENT_STATUS_UPDATE', function (data: any) {
-      if (data.status == 'READY') {
-        setOpen(false);
-        setDeployed(true);
-      } else if (data.status == 'FAILED') {
-        setResponse('error');
+    const savedDeploymentId = localStorage.getItem('deploymentId');
+    if (savedToken && savedDeploymentId) {
+      setApolloClient(createApolloClient(savedToken, savedDeploymentId));
+      setDeployed(true);
+    }
+  }, [cedalioSdk]);
+
+  const loginToCedalio = async () => {
+    const response = await cedalioSdk?.login();
+    if (response?.ok) {
+      setToken(response.data.token);
+      localStorage.setItem('token', response.data.token);
+    }
+  };
+
+  const logoutFromCedalio = () => {
+    cedalioSdk?.logout();
+    setToken(undefined);
+    localStorage.removeItem('token');
+    localStorage.removeItem('deploymentId');
+  };
+
+  const deploy = async () => {
+    // TODO: Change getAuthToken to isLoggedIn ?
+    if (cedalioSdk && cedalioSdk.getAuthToken()) {
+      setDeployLoading(true);
+      const deployResponse = await cedalioSdk.createDatabase();
+      if (deployResponse.ok) {
+        const { deploymentId } = deployResponse.data;
+        const deployStatusResponse = await cedalioSdk.waitForDatabaseDeployment({
+          deploymentId: deployResponse.data.deploymentId
+        });
+        setDeployLoading(false);
+
+        if (deployStatusResponse.ok) {
+          setDeployed(true);
+          const token = cedalioSdk.getAuthToken();
+          if (token) {
+            setApolloClient(createApolloClient(token, deploymentId));
+          }
+          localStorage.setItem('deploymentId', deploymentId);
+        } else {
+          setDeployError(deployStatusResponse.error.message);
+        }
+      } else {
+        setDeployError(deployResponse.error.message);
       }
-    });
-  }
+    }
+  };
 
-  const client = new ApolloClient({
-    link: authLink.concat(httpLink), // Chain it with the HttpLink
-    cache: new InMemoryCache({
-      addTypename: false //TODO this must be removed
-    })
-  });
+  const createApolloClient = (token: string, deploymentId: string) => {
+    const httpLink = new HttpLink({
+      uri: `https://${CEDALIO_PROJECT_ID}.gtw.cedalio.io/deployments/${deploymentId}/graphql`
+    });
+    const authLink = new ApolloLink((operation, forward) => {
+      operation.setContext({
+        headers: {
+          authorization: token ? `Bearer ${token}` : ''
+        }
+      });
+
+      return forward(operation);
+    });
+
+    return new ApolloClient({
+      link: authLink.concat(httpLink),
+      cache: new InMemoryCache({
+        addTypename: false //TODO this must be removed
+      })
+    });
+  };
 
   ReactGA.initialize(TRACKING_ID);
 
+  const isLoggedIn = !!token;
+
+  const setAccess = async () => {
+    const deploymentId = localStorage.getItem('deploymentId');
+    console.log(deploymentId);
+    if (!deploymentId) {
+      return;
+    }
+    const res = await cedalioSdk?.setAccessRules({
+      deploymentId,
+      rules: [
+        {
+          accessControl: 'PUBLIC',
+          address
+        }
+      ]
+    });
+    console.log('res', res);
+  };
+
   const Loader = () => {
-    if (response === 'error') {
+    if (deployError) {
       return (
         <div
           className="loader-layer"
@@ -219,9 +193,9 @@ export default function App() {
             className="error-message"
             style={{ textTransform: 'uppercase', textAlign: 'center', color: 'black', fontWeight: '200' }}
           >
-            We had a <strong> problem </strong>trying to deploy please <strong>retry</strong>.
+            We had a <strong> problem </strong>trying to deploy please <strong>retry</strong>.{deployError}
           </p>
-          <button className="retry-button" onClick={redeploy}>
+          <button className="retry-button" onClick={deploy}>
             RETRY
           </button>
         </div>
@@ -245,52 +219,71 @@ export default function App() {
   };
 
   return (
-    <ApolloProvider client={client}>
-      <div className="App">
-        <WagmiConfig client={wagmiClient}>
-          <Header />
-          <div className={address ? `button-container connected` : `button-container`}>
-            <Web3Button />
+    <div className="App">
+      <WagmiConfig client={wagmiClient}>
+        <Header />
+        <div className={address ? `button-container connected` : `button-container`}>
+          <Web3Button />
+        </div>
+        <div className="gif-container" style={address ? { display: 'none' } : { display: 'flex' }}>
+          <div className="web">
+            <img className="gif" src="home-gif.gif" alt="explained gif" />
           </div>
-          <div className="gif-container" style={address ? { display: 'none' } : { display: 'flex' }}>
-            <div className="web">
-              <img className="gif" src="home-gif.gif" alt="explained gif" />
-            </div>
-          </div>
-          {deployed ? <ListComponent address={address} /> : null}
-          <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
-          <Modal
-            aria-labelledby="transition-modal-title"
-            aria-describedby="transition-modal-description"
-            open={open}
-            onClose={handleClose}
-            closeAfterTransition
-            BackdropComponent={Backdrop}
-            BackdropProps={{
-              timeout: 500
-            }}
-          >
-            <Fade in={open}>
-              <Box sx={style}>
-                <Typography
-                  id="transition-modal-title"
-                  variant="h6"
-                  component="h2"
-                  sx={{ fontWeight: '800', textAlign: 'center' }}
-                >
-                  Creating your account and deploying the Smart Contract Database in Polygon Mumbai!
-                </Typography>
-                <Typography id="transition-modal-description" sx={{ mt: 2, textAlign: 'center' }}>
-                  This could take between <strong> 15 to 30 seconds</strong> depending on the network
-                  congestion. Please <strong>don’t close the window.</strong>
-                </Typography>
-                <Loader />
-              </Box>
-            </Fade>
-          </Modal>
-          <Footer contractAddress={contractAddress} />
-        </WagmiConfig>
-      </div>
-    </ApolloProvider>
+        </div>
+        {address && !isLoggedIn && (
+          <button type="button" onClick={loginToCedalio}>
+            Log in
+          </button>
+        )}
+        {isLoggedIn && !deployed && (
+          <button type="button" onClick={deploy}>
+            Deploy
+          </button>
+        )}
+        {isLoggedIn && (
+          <button type="button" onClick={logoutFromCedalio}>
+            Log out
+          </button>
+        )}
+        {deployed && apolloClient && (
+          <>
+            <button onClick={setAccess}>Set access</button>
+            <ApolloProvider client={apolloClient}>
+              <ListComponent address={address} />
+            </ApolloProvider>
+          </>
+        )}
+        <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
+        <Modal
+          aria-labelledby="transition-modal-title"
+          aria-describedby="transition-modal-description"
+          open={deployLoading}
+          closeAfterTransition
+          BackdropComponent={Backdrop}
+          BackdropProps={{
+            timeout: 500
+          }}
+        >
+          <Fade in={deployLoading}>
+            <Box sx={style}>
+              <Typography
+                id="transition-modal-title"
+                variant="h6"
+                component="h2"
+                sx={{ fontWeight: '800', textAlign: 'center' }}
+              >
+                Creating your account and deploying the Smart Contract Database in Polygon Mumbai!
+              </Typography>
+              <Typography id="transition-modal-description" sx={{ mt: 2, textAlign: 'center' }}>
+                This could take between <strong> 15 to 30 seconds</strong> depending on the network
+                congestion. Please <strong>don’t close the window.</strong>
+              </Typography>
+              <Loader />
+            </Box>
+          </Fade>
+        </Modal>
+        <Footer contractAddress={contractAddress} />
+      </WagmiConfig>
+    </div>
   );
 }
