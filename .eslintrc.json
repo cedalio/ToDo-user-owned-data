@@ -15,7 +15,7 @@
       "jsx": true
     }
   },
-  "plugins": ["react", "jsx-a11y", "@typescript-eslint", "prettier"],
+  "plugins": ["react", "jsx-a11y", "@typescript-eslint", "import", "prettier"],
   "rules": {
     "prettier/prettier": "error",
     "@typescript-eslint/ban-ts-comment": "off"

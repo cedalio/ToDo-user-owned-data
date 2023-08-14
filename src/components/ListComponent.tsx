@@ -50,8 +50,7 @@ const dragColors = {
   deleteColor: '#ea3b3b'
 };
 
-export default function ListComponent(props: { address: string | undefined }) {
-  const ownerAddress = String(props.address);
+export default function ListComponent() {
   const [todos, setTodos] = React.useState<Todo[]>([]);
   const [newTodo, setNewTodo] = React.useState<Todo>();
   const [update, setUpdate] = React.useState<Update>();
@@ -166,63 +165,61 @@ export default function ListComponent(props: { address: string | undefined }) {
     }
   }
 
-  if (props.address) {
-    return (
-      <div className="list">
-        <DragDropContext onDragEnd={onDragEnd} onDragStart={onDragStart} onDragUpdate={onDragUpdate}>
-          <div className="container">
-            <Droppable droppableId="delete">
-              {(provided) => (
-                <div {...provided.droppableProps} ref={provided.innerRef} className="delete-container">
-                  <DeleteOutlineOutlinedIcon
-                    fontSize="large"
-                    sx={{
-                      height: '200px',
-                      width: '200px',
-                      color: deleteIconColor,
-                      position: 'fixed',
-                      right: '76%'
-                    }}
-                  />
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-            <Droppable droppableId="ready">
-              {(provided) => (
-                <div {...provided.droppableProps} ref={provided.innerRef} className="list-container">
-                  {displayTodos()}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
+  return (
+    <div className="list">
+      <DragDropContext onDragEnd={onDragEnd} onDragStart={onDragStart} onDragUpdate={onDragUpdate}>
+        <div className="container">
+          <Droppable droppableId="delete">
+            {(provided) => (
+              <div {...provided.droppableProps} ref={provided.innerRef} className="delete-container">
+                <DeleteOutlineOutlinedIcon
+                  fontSize="large"
+                  sx={{
+                    height: '200px',
+                    width: '200px',
+                    color: deleteIconColor,
+                    position: 'fixed',
+                    right: '76%'
+                  }}
+                />
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+          <Droppable droppableId="ready">
+            {(provided) => (
+              <div {...provided.droppableProps} ref={provided.innerRef} className="list-container">
+                {displayTodos()}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
 
-            <Droppable droppableId="done">
-              {(provided) => (
-                <div {...provided.droppableProps} ref={provided.innerRef} className="done-container">
-                  <CheckCircleOutlineIcon
-                    fontSize="large"
-                    sx={{
-                      height: '200px',
-                      width: '200px',
-                      color: doneIconColor,
-                      position: 'fixed',
-                      left: '76%'
-                    }}
-                  />
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </div>
-          <TodoInputComponent setState={setNewTodo} address={ownerAddress} />
-          <Snackbar open={open} autoHideDuration={3000} onClose={handleClose}>
-            <Alert onClose={handleClose} severity={updateError ? 'error' : 'success'} sx={{ width: '100%' }}>
-              {updateMessage}
-            </Alert>
-          </Snackbar>
-        </DragDropContext>
-      </div>
-    );
-  } else return null;
+          <Droppable droppableId="done">
+            {(provided) => (
+              <div {...provided.droppableProps} ref={provided.innerRef} className="done-container">
+                <CheckCircleOutlineIcon
+                  fontSize="large"
+                  sx={{
+                    height: '200px',
+                    width: '200px',
+                    color: doneIconColor,
+                    position: 'fixed',
+                    left: '76%'
+                  }}
+                />
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </div>
+        <TodoInputComponent setState={setNewTodo} />
+        <Snackbar open={open} autoHideDuration={3000} onClose={handleClose}>
+          <Alert onClose={handleClose} severity={updateError ? 'error' : 'success'} sx={{ width: '100%' }}>
+            {updateMessage}
+          </Alert>
+        </Snackbar>
+      </DragDropContext>
+    </div>
+  );
 }

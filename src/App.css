@@ -4,15 +4,6 @@
   text-align: center;
   min-height: 100vh;
 }
-.gif-container{
-  width: 100%;
-  min-width: 500px;
-  padding-top: 70px;
-  padding-bottom: 70px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 .web{
   background: url('../public/browser.png');
   background-repeat: no-repeat;

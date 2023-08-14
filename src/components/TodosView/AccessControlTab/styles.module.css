@@ -1,0 +1,122 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 500px;
+  padding: 30px 0;
+}
+
+.explanation {
+  text-align: start;
+}
+
+.permissionItems {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.accessControlRow {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.accessControlField, .addressInput {
+  flex: 1;
+}
+
+.accessControlField.noAddress {
+  flex: 0 0 200px;
+}
+
+.ruleContainer {
+  display: flex;
+  gap: 20px;
+}
+
+.ruleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.leftRuleContainer {
+  display: flex;
+}
+
+.ruleFieldContainer {
+  width: 200px;
+}
+
+.checkboxContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.checkboxLabel {
+  margin-left: 0;
+}
+
+:global(.MuiCheckbox-root).checkbox {
+  padding: 0;
+  margin-right: 5px;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 10px;
+}
+
+.removeButton, .addButton {
+  height: 25px;
+  width: 25px;
+  color: white;
+}
+
+:global(.MuiIconButton-root).addButton {
+  background-color: #319B43;
+  color: white;
+}
+
+:global(.MuiIconButton-root).addButton:hover {
+  background-color: #319B43;
+  opacity: 0.6
+}
+
+:global(.MuiIconButton-root).removeButton:hover {
+  background-color: red;
+  opacity: 0.6
+}
+
+:global(.MuiIconButton-root).removeButton {
+  background-color: red;
+  color: white;
+}
+
+:global(.MuiButton-root).submitButton {
+  align-self: center;
+  background:  rgb(135,32,255);
+  color: white;
+  border: none;
+  height: 40px;
+}
+
+:global(.MuiButton-root).submitButton:hover {
+  background:  rgba(135,32,255,0.5);
+  border: none;
+}
+  
+
+:global(.MuiButton-root).submitButton:disabled {
+  background:  grey;
+}
+
+.spinner {
+  color: white;
+}
+
+.requestError {
+  color: red;
+}
