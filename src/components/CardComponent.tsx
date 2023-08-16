@@ -4,8 +4,10 @@ import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Card from '@mui/material/Card';
+import Box from '@mui/material/Box';
 import { useMutation, gql } from '@apollo/client';
 import { Draggable } from 'react-beautiful-dnd';
+import { Todo } from './ListComponent';
 
 const UPDATE_TODO = gql`
   mutation UpdateTodo($id: ID!, $status: Status) {
@@ -21,15 +23,6 @@ const UPDATE_TODO = gql`
     }
   }
 `;
-
-type Todo = {
-  title: string;
-  description?: string;
-  tags: Array<string>;
-  priority: number;
-  id: string;
-  status: string;
-};
 
 type Update = {
   todoId: string;
@@ -85,42 +78,47 @@ export default function CardComponent(props: {
               zIndex: 99
             }}
           >
-            <CardContent>
-              <Typography
-                sx={{ fontSize: 23, fontWeight: 600, textAlign: 'justify' }}
-                color="black"
-                gutterBottom
-              >
-                {props.todo.title}
-              </Typography>
-              <Typography sx={{ fontSize: 14, textAlign: 'justify' }} color="text.secondary" gutterBottom>
-                {props.todo.description}
-              </Typography>
-              <Stack spacing={1} alignItems="left">
-                <Stack direction="row" spacing={1}>
-                  <Chip
-                    color="error"
-                    label={`P${props.todo.priority}`}
-                    sx={{
-                      fontWeight: '600',
-                      backgroundColor: 'hsl(0deg 86% 97%)',
-                      color: 'hsl(347deg 77% 56%)'
-                    }}
-                  ></Chip>
-                  {props.todo.tags.map((tag: any) => (
+            <CardContent sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography
+                  sx={{ fontSize: 23, fontWeight: 600, textAlign: 'justify' }}
+                  color="black"
+                  gutterBottom
+                >
+                  {props.todo.title}
+                </Typography>
+                <Typography sx={{ fontSize: 14, textAlign: 'justify' }} color="text.secondary" gutterBottom>
+                  {props.todo.description}
+                </Typography>
+                <Stack spacing={1} alignItems="left">
+                  <Stack direction="row" spacing={1}>
                     <Chip
-                      label={tag}
-                      key={tag}
-                      color="success"
+                      color="error"
+                      label={`P${props.todo.priority}`}
                       sx={{
                         fontWeight: '600',
-                        backgroundColor: 'hsl(138deg 76% 97%)',
-                        color: 'hsl(142deg 61% 42%)'
+                        backgroundColor: 'hsl(0deg 86% 97%)',
+                        color: 'hsl(347deg 77% 56%)'
                       }}
-                    />
-                  ))}
+                    ></Chip>
+                    {props.todo.tags.map((tag: any) => (
+                      <Chip
+                        label={tag}
+                        key={tag}
+                        color="success"
+                        sx={{
+                          fontWeight: '600',
+                          backgroundColor: 'hsl(138deg 76% 97%)',
+                          color: 'hsl(142deg 61% 42%)'
+                        }}
+                      />
+                    ))}
+                  </Stack>
                 </Stack>
-              </Stack>
+              </Box>
+              {props.todo.image && (
+                <img src={props.todo.image.fileURL} style={{ height: '100px', width: '100px' }} alt="Todo" />
+              )}
             </CardContent>
           </Card>
         </div>

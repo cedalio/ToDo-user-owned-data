@@ -15,8 +15,8 @@ import FormControl from '@mui/material/FormControl';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import { Rings } from 'react-loader-spinner';
+import UploadImage from './UploadImage';
 
-//GRAPHQL query template, this will be replaced by the variables
 const CREATE_TODO = gql`
   mutation CreateTodo(
     $title: String!
@@ -24,9 +24,17 @@ const CREATE_TODO = gql`
     $priority: Int!
     $tags: [String!]
     $status: Status
+    $image: FileInput!
   ) {
     todoCreate(
-      input: { title: $title, description: $description, priority: $priority, tags: $tags, status: $status }
+      input: {
+        title: $title
+        description: $description
+        priority: $priority
+        tags: $tags
+        status: $status
+        image: $image
+      }
     ) {
       todo {
         id
@@ -35,11 +43,18 @@ const CREATE_TODO = gql`
         priority
         tags
         status
+        image {
+          contentType
+          cid
+          size
+          fileName
+          fileURL
+        }
       }
     }
   }
 `;
-//The TO-DO default if we dont have any
+
 const defaultTodo = {
   title: 'This Is Your First ToDo Card!',
   description: 'Buy some food for my dog and change their water',
@@ -50,13 +65,18 @@ const defaultTodo = {
 
 const tagsOptions = ['health', 'rutine', 'market'];
 
-export default function TodoInputComponent(props: { setState: React.Dispatch<React.SetStateAction<any>> }) {
+export default function TodoInputComponent({
+  setState
+}: {
+  setState: React.Dispatch<React.SetStateAction<any>>;
+}) {
   const [priority, setPriority] = React.useState(1);
   const [title, setTitle] = React.useState('');
   const [description, setDescription] = React.useState('');
   const [titleError, setTitleError] = React.useState(false);
   const [descriptionError, setDescriptionError] = React.useState(false);
   const [tag, setTag] = React.useState<string[]>([]);
+  const [image, setImage] = React.useState<File | null>(null);
   const [disableButtons, setDisableButtons] = React.useState(false);
 
   const priorities = [1, 2, 3, 4];
@@ -65,12 +85,12 @@ export default function TodoInputComponent(props: { setState: React.Dispatch<Rea
 
   React.useEffect(() => {
     if (data) {
-      props.setState(data.todoCreate.todo);
+      setState(data.todoCreate.todo);
       clearInputs();
       setTitleError(false);
       setDescriptionError(false);
     }
-  }, [data]);
+  }, [data, setState]);
 
   const handleChangePriorities = (event: React.MouseEvent<HTMLElement>, priority: number) => {
     setPriority(priority);
@@ -83,6 +103,7 @@ export default function TodoInputComponent(props: { setState: React.Dispatch<Rea
     setTitleError(false);
     setDescriptionError(false);
     setTag([]);
+    setImage(null);
   }
 
   const handleChangeTagsSelect = (event: SelectChangeEvent<string[]>) => {
@@ -91,7 +112,6 @@ export default function TodoInputComponent(props: { setState: React.Dispatch<Rea
   };
 
   const Loader = () => {
-    console.log('sdf');
     if (!priority) {
       setDisableButtons(false);
       return (
@@ -176,7 +196,8 @@ export default function TodoInputComponent(props: { setState: React.Dispatch<Rea
               }
             }}
           />
-          <Box sx={{ display: 'flex', flexDirection: 'row', width: '800px' }}>
+
+          <Box sx={{ display: 'flex', flexDirection: 'row', width: '800px', marginBottom: '10px' }}>
             <ToggleButtonGroup
               value={priority}
               exclusive
@@ -215,6 +236,7 @@ export default function TodoInputComponent(props: { setState: React.Dispatch<Rea
               </Select>
             </FormControl>
           </Box>
+          <UploadImage image={image} onImageSelect={setImage} />
         </CardContent>
       </Card>
       <Loader />
@@ -252,7 +274,8 @@ export default function TodoInputComponent(props: { setState: React.Dispatch<Rea
                   description: description,
                   priority: priority,
                   tags: tag,
-                  status: 'READY'
+                  status: 'READY',
+                  image
                 }
               });
             } else {

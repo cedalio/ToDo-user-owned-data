@@ -4,6 +4,7 @@ import { EthereumClient, modalConnectors, walletConnectProvider } from '@web3mod
 import { Web3Modal } from '@web3modal/react';
 import { configureChains, createClient, WagmiConfig, useAccount } from 'wagmi';
 import { polygonMumbai } from 'wagmi/chains';
+import { createUploadLink } from 'apollo-upload-client';
 
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -138,7 +139,7 @@ export default function App() {
   }, [waitForDbDeployment]);
 
   const createApolloClient = (token: string, deploymentId: string) => {
-    const httpLink = new HttpLink({
+    const httpLink = createUploadLink({
       uri: `https://${CEDALIO_PROJECT_ID}.gtw.cedalio.io/deployments/${deploymentId}/graphql`
     });
     const authLink = new ApolloLink((operation, forward) => {
