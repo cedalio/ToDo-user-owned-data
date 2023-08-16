@@ -50,10 +50,7 @@ const defaultTodo = {
 
 const tagsOptions = ['health', 'rutine', 'market'];
 
-export default function TodoInputComponent(props: {
-  setState: React.Dispatch<React.SetStateAction<any>>;
-  address: string;
-}) {
+export default function TodoInputComponent(props: { setState: React.Dispatch<React.SetStateAction<any>> }) {
   const [priority, setPriority] = React.useState(1);
   const [title, setTitle] = React.useState('');
   const [description, setDescription] = React.useState('');
@@ -94,6 +91,7 @@ export default function TodoInputComponent(props: {
   };
 
   const Loader = () => {
+    console.log('sdf');
     if (!priority) {
       setDisableButtons(false);
       return (
