@@ -99,12 +99,10 @@ export default function App() {
   });
 
   const waitForDbDeployment = useCallback(async (deploymentId: string) => {
-    console.log('waiting for deployment status');
     const deployStatusResponse = await cedalioSdk.waitForDatabaseDeployment({
       deploymentId
     });
     setDeployLoading(false);
-    console.log('status: ', deployStatusResponse);
     if (deployStatusResponse.ok) {
       setDatabaseReady(true);
       if (deployStatusResponse.data.status === 'READY') {
@@ -163,7 +161,6 @@ export default function App() {
   ReactGA.initialize(TRACKING_ID);
 
   const Loader = () => {
-    console.log('deployError', deployError);
     if (deployError) {
       return (
         <div
