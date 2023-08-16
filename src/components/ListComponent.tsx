@@ -12,13 +12,22 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props,
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-type Todo = {
+export type Todo = {
   title: string;
   description?: string;
   tags: Array<string>;
   priority: number;
   id: string;
   status: string;
+  image?: CedalioFile;
+};
+
+export type CedalioFile = {
+  contentType: string;
+  cid: string;
+  size: number;
+  fileName: string;
+  fileURL: string;
 };
 
 type Update = {
@@ -37,6 +46,13 @@ const GET_TODOS = gql`
           priority
           tags
           status
+          image {
+            contentType
+            cid
+            size
+            fileName
+            fileURL
+          }
         }
       }
     }
