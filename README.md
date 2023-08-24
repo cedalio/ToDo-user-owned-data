@@ -12,7 +12,7 @@ A. Create a project with the "todo" schema from the Cedalio Template Library.
 
 B. Deploy the schema.
 
-C. Copy the URL and set it as `REACT_APP_PROJECT_URL` in the `.env.development` file.
+C. Copy the Project ID and set it as `REACT_APP_CEDALIO_PROJECT_ID` in the `.env.development` file.
 
 Step 2: Create a `.env.development` file with the following variables:
 
@@ -20,8 +20,7 @@ Step 2: Create a `.env.development` file with the following variables:
 REACT_APP_WC_PROJECT_ID=WALLET-CONNECT-ID
 GENERATE_SOURCEMAP=false
 REACT_APP_NET_SCAN_BASE=https://mumbai.polygonscan.com/address/ (or your selected network scan)
-REACT_APP_PUSHER_KEY=PUSHER-KEY
-REACT_APP_PROJECT_URL= the url you get from the studio
+REACT_APP_CEDALIO_PROJECT_ID= the project id you get from the studio
 ```
 
 
