@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import './App.css';
 import { EthereumClient, modalConnectors, walletConnectProvider } from '@web3modal/ethereum';
 import { Web3Modal } from '@web3modal/react';
@@ -17,9 +17,10 @@ import Typography from '@mui/material/Typography';
 import ReactGA from 'react-ga';
 import { Rings } from 'react-loader-spinner';
 
-import { ApolloClient, InMemoryCache, HttpLink, ApolloLink, NormalizedCacheObject } from '@apollo/client';
+import { ApolloClient, InMemoryCache, ApolloLink, NormalizedCacheObject, from } from '@apollo/client';
+import { onError } from '@apollo/client/link/error';
 import Login from './components/Login';
-import { cedalioSdk } from './utils/sdk';
+import { cedalioSdk, loginToCedalio, logoutFromCedalio, validateJwt } from './utils/sdk';
 import TodosView from './components/TodosView';
 import { CEDALIO_PROJECT_ID } from './utils/envs';
 
@@ -54,6 +55,43 @@ const wagmiClient = createClient({
 // Web3Modal Ethereum Client
 const ethereumClient = new EthereumClient(wagmiClient, chains);
 
+const createApolloClient = ({
+  deploymentId,
+  onTokenExpiration
+}: {
+  deploymentId: string;
+  onTokenExpiration: () => void;
+}) => {
+  const { token } = cedalioSdk.getAuthSession();
+
+  const errorLink = onError(({ graphQLErrors, networkError }) => {
+    // Error with the token, possible because it expired. Logout.
+    onTokenExpiration();
+  });
+
+  const httpLink = createUploadLink({
+    uri: `https://${CEDALIO_PROJECT_ID}.gtw.cedalio.io/deployments/${deploymentId}/graphql`
+  });
+  const authLink = new ApolloLink((operation, forward) => {
+    operation.setContext({
+      headers: {
+        authorization: token ? `Bearer ${token}` : ''
+      }
+    });
+
+    return forward(operation);
+  });
+
+  const apolloClient = new ApolloClient({
+    link: from([errorLink, authLink.concat(httpLink)]),
+    cache: new InMemoryCache({
+      addTypename: false
+    })
+  });
+
+  return apolloClient;
+};
+
 export default function App() {
   const [contractAddress, setContractAddress] = useState<string | undefined>();
   const projectId = String(process.env.REACT_APP_WC_PROJECT_ID);
@@ -61,42 +99,6 @@ export default function App() {
   const [deployError, setDeployError] = useState<string>();
   const [databaseReady, setDatabaseReady] = useState(false);
   const [apolloClient, setApolloClient] = useState<ApolloClient<NormalizedCacheObject>>();
-
-  const loginToCedalio = async (address: string) => {
-    const response = await cedalioSdk?.login({ address });
-    if (response?.ok) {
-      localStorage.setItem('token', response.data.token);
-      return response.data.token;
-    }
-    return undefined;
-  };
-
-  const logoutFromCedalio = () => {
-    cedalioSdk?.logout();
-    localStorage.removeItem('token');
-    localStorage.removeItem('deploymentId');
-  };
-
-  useAccount({
-    onConnect: async (data) => {
-      if (data.address) {
-        // Login is executing every time. Need a way to save address and token
-        const token = await loginToCedalio(data.address);
-
-        const savedDeploymentId = localStorage.getItem('deploymentId');
-        if (token && savedDeploymentId) {
-          setApolloClient(createApolloClient(token, savedDeploymentId));
-          setDatabaseReady(true);
-          waitForDbDeployment(savedDeploymentId);
-        } else {
-          deploy();
-        }
-      }
-    },
-    onDisconnect: () => {
-      logoutFromCedalio();
-    }
-  });
 
   const waitForDbDeployment = useCallback(async (deploymentId: string) => {
     console.log('waiting for deployment status');
@@ -109,9 +111,9 @@ export default function App() {
       setDatabaseReady(true);
       if (deployStatusResponse.data.status === 'READY') {
         setContractAddress(deployStatusResponse.data.databaseContract);
-        const token = cedalioSdk.getAuthToken();
+        const { token } = cedalioSdk.getAuthSession();
         if (token) {
-          setApolloClient(createApolloClient(token, deploymentId));
+          setApolloClient(createApolloClient({ deploymentId, onTokenExpiration: logoutFromCedalio }));
         }
         localStorage.setItem('deploymentId', deploymentId);
       } else {
@@ -124,43 +126,65 @@ export default function App() {
   }, []);
 
   const deploy = useCallback(async () => {
-    if (cedalioSdk.isLoggedIn()) {
-      setDeployError(undefined);
-      setDeployLoading(true);
-      const deployResponse = await cedalioSdk.createDatabase();
-      if (deployResponse.ok) {
-        const { deploymentId } = deployResponse.data;
-        localStorage.setItem('deploymentId', deploymentId);
-        waitForDbDeployment(deploymentId);
-      } else {
-        setDeployError(deployResponse.error.message);
-      }
+    setDeployError(undefined);
+    setDeployLoading(true);
+    const deployResponse = await cedalioSdk.createDatabase();
+    if (deployResponse.ok) {
+      const { deploymentId } = deployResponse.data;
+      localStorage.setItem('deploymentId', deploymentId);
+      waitForDbDeployment(deploymentId);
+    } else {
+      setDeployError(deployResponse.error.message);
     }
   }, [waitForDbDeployment]);
 
-  const createApolloClient = (token: string, deploymentId: string) => {
-    const httpLink = createUploadLink({
-      uri: `https://${CEDALIO_PROJECT_ID}.gtw.cedalio.io/deployments/${deploymentId}/graphql`
-    });
-    const authLink = new ApolloLink((operation, forward) => {
-      operation.setContext({
-        headers: {
-          authorization: token ? `Bearer ${token}` : ''
+  const { isConnected, address } = useAccount({
+    onConnect: async (data) => {
+      if (data.address) {
+        let token: string | undefined | null = localStorage.getItem('token');
+        const { address } = data;
+
+        // If current token is invalid/expired, logout
+        if (token && !validateJwt(token)) {
+          logoutFromCedalio();
+          return;
         }
-      });
 
-      return forward(operation);
-    });
+        // Current token is valid, set it as session token to avoid login request
+        if (token) {
+          cedalioSdk.setAuthSession({ address, token });
+        } else {
+          // No token, perform login
+          token = await loginToCedalio(address);
+        }
 
-    return new ApolloClient({
-      link: authLink.concat(httpLink),
-      cache: new InMemoryCache({
-        addTypename: false //TODO this must be removed
-      })
-    });
-  };
+        // If there's a deploymentId avoid deploy and check database status
+        const deploymentId = localStorage.getItem('deploymentId');
+        if (token && deploymentId) {
+          setApolloClient(createApolloClient({ deploymentId, onTokenExpiration: logoutFromCedalio }));
+          setDatabaseReady(true);
+          waitForDbDeployment(deploymentId);
+        } else {
+          deploy();
+        }
+      }
+    },
+    onDisconnect: () => {
+      logoutFromCedalio();
+    }
+  });
+
+  // If token is invalid or expired, logout
+  useEffect(() => {
+    const { token } = cedalioSdk.getAuthSession();
+    if (token && !validateJwt(token)) {
+      logoutFromCedalio();
+    }
+  }, [address]);
 
   ReactGA.initialize(TRACKING_ID);
+
+  const isLoggedIn = cedalioSdk?.isLoggedIn() && isConnected;
 
   const Loader = () => {
     console.log('deployError', deployError);
@@ -198,8 +222,6 @@ export default function App() {
       );
     }
   };
-
-  const isLoggedIn = cedalioSdk.isLoggedIn();
 
   return (
     <div className="App">
