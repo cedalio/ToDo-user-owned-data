@@ -1,0 +1,21 @@
+:global(.MuiButton-root).submitButton {
+  align-self: center;
+  background:  rgb(135,32,255);
+  color: white;
+  border: none;
+  height: 40px;
+}
+
+:global(.MuiButton-root).submitButton:hover {
+  background: rgba(135,32,255,0.5);
+  border: none;
+}
+  
+
+:global(.MuiButton-root).submitButton:disabled {
+  background: grey;
+}
+
+:global(.MuiCircularProgress-root).spinner {
+  color: white;
+}

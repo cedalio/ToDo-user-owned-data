@@ -6,7 +6,7 @@ import Tab from '@mui/material/Tab';
 
 import styles from './styles.module.css';
 import CustomTabPanel from './CustomTabPanel';
-import AccessControlTab from './AccessControlTab';
+import AccessControlTab from './AccessTab';
 
 interface Props {
   apolloClient: ApolloClient<NormalizedCacheObject>;
@@ -30,7 +30,7 @@ function TodosView({ apolloClient }: Props) {
     <div className={styles.container}>
       <Tabs value={currentTabIndex} onChange={handleTabChange} aria-label="Todo list views">
         <Tab label="TODOs" {...a11yProps(0)} />
-        <Tab label="Access Control" {...a11yProps(1)} />
+        <Tab label="Access" {...a11yProps(1)} />
       </Tabs>
       <ApolloProvider client={apolloClient}>
         <CustomTabPanel value={currentTabIndex} index={0}>
