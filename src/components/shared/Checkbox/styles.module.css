@@ -1,0 +1,8 @@
+.checkboxLabel {
+  margin-left: 0;
+}
+
+:global(.MuiCheckbox-root).checkbox {
+  padding: 0;
+  margin-right: 5px;
+}

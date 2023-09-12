@@ -1,0 +1,4 @@
+:global(.MuiCircularProgress-root) {
+  color: rgb(135,32,255);
+  align-self: center;
+}

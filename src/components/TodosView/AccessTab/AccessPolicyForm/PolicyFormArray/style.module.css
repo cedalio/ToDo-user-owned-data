@@ -1,0 +1,35 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.policyContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  border: 1px solid grey;
+  border-radius: 6px;
+  padding: 15px;
+}
+
+.titleContainer {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.policyTitle {
+  font-size: 18px;
+  margin: 0;
+}
+
+.firstRow {
+  display: flex;
+  gap: 20px;
+}
+
+.policyType, .address {
+  flex: 1;
+}

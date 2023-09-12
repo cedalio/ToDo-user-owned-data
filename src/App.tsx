@@ -150,7 +150,7 @@ export default function App() {
 
         // Current token is valid, set it as session token to avoid login request
         if (token) {
-          cedalioSdk.setAuthSession({ address, token });
+          cedalioSdk.setAuthSession({ token });
         } else {
           // No token, perform login
           token = await loginToCedalio(address);

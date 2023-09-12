@@ -1,0 +1,27 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 500px;
+}
+
+.explanation {
+  text-align: start;
+}
+
+.permissionItems {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.setPolicyContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  justify-content: center;
+}
+
+.requestError {
+  color: red;
+}

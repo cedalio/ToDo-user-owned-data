@@ -18,7 +18,8 @@
   "plugins": ["react", "jsx-a11y", "@typescript-eslint", "import", "prettier"],
   "rules": {
     "prettier/prettier": "error",
-    "@typescript-eslint/ban-ts-comment": "off"
+    "@typescript-eslint/ban-ts-comment": "off",
+    "no-debugger": "warn"
   },
   "ignorePatterns": "**/*.js"
 }
