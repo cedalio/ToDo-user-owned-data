@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@apollo/client": "^3.7.3",
-    "@cedalio/sdk-js": "^0.1.0-beta.2",
+    "@cedalio/sdk-js": "file:../sdk-js",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
     "@mui/icons-material": "^5.11.0",

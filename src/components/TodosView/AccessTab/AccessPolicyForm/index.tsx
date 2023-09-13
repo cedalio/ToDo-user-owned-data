@@ -56,10 +56,10 @@ function AccessPolicyForm() {
         'policyAddresses',
         JSON.stringify({ ...currentAddressesWithPolicies, ...addressesMap })
       );
-    }
 
-    // Update policies
-    getPoliciesRequest();
+      // Update policies
+      getPoliciesRequest();
+    }
   };
 
   if (getPoliciesLoading) {
