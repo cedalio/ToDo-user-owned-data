@@ -10,9 +10,10 @@ interface Props {
   max?: number;
   onAdd: () => void;
   onRemove: (index: number) => void;
+  allowEmpty?: boolean;
 }
 
-function FormFieldButtons({ count, fieldIndex, max, onAdd, onRemove }: Props) {
+function FormFieldButtons({ count, fieldIndex, max, onAdd, onRemove, allowEmpty }: Props) {
   return (
     <div className={styles.actionButtons}>
       {fieldIndex === count - 1 && (
@@ -25,7 +26,7 @@ function FormFieldButtons({ count, fieldIndex, max, onAdd, onRemove }: Props) {
           <AddIcon fontSize="small" />
         </IconButton>
       )}
-      {(fieldIndex !== 0 || count > 1) && (
+      {(allowEmpty || fieldIndex !== 0 || count > 1) && (
         <IconButton aria-label="Remove" onClick={() => onRemove(fieldIndex)} className={styles.removeButton}>
           <RemoveIcon fontSize="small" />
         </IconButton>
