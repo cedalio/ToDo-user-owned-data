@@ -1,22 +1,36 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Button from '../../../shared/Button';
 import { useForm, FormProvider } from 'react-hook-form';
 
 import styles from './styles.module.css';
-import { FormPolicy, useGetPoliciesRequest, useRequestSetAccessControl } from './utils';
+import {
+  FormPolicy,
+  getAddressesWithDeletedPolicies,
+  useDeleteUserPolicyRequest,
+  useGetPoliciesRequest,
+  useRequestUpdateAccessPolicies
+} from './utils';
 import PolicyFormArray from './PolicyFormArray';
 import Spinner from '../../../shared/Spinner';
+import DeletePolicyDialog from './DeletePolicyModal';
+import * as LocalStorageService from '../../../../utils/LocalStorageService';
 
 function AccessPolicyForm() {
+  const [deletedAddresses, setDeletedAddresses] = useState<string[]>([]);
   const { request: getPoliciesRequest, data, loading: getPoliciesLoading } = useGetPoliciesRequest();
+  const { request: deletePoliciesRequest, loading: deletePoliciesLoading } = useDeleteUserPolicyRequest();
+  const { request: updatePoliciesRequest, loading, error } = useRequestUpdateAccessPolicies();
 
   const defaultPolicies = useMemo(
     () =>
-      data?.map((userPolicy) => ({
-        policyType: userPolicy.policy.policyType,
-        address: userPolicy.address,
-        accessRules: userPolicy.policy.policyType === 'ALLOW_FULL_ACCESS' ? [] : userPolicy.policy.accessRules
-      })) ?? [
+      (data &&
+        data.length > 0 &&
+        data.map((userPolicy) => ({
+          policyType: userPolicy.policy.policyType,
+          address: userPolicy.address,
+          accessRules:
+            userPolicy.policy.policyType === 'ALLOW_FULL_ACCESS' ? [] : userPolicy.policy.accessRules
+        }))) || [
         {
           policyType: 'ALLOW_FULL_ACCESS' as const,
           address: '',
@@ -29,7 +43,8 @@ function AccessPolicyForm() {
   const methods = useForm<{ policies: FormPolicy[] }>({
     defaultValues: {
       policies: defaultPolicies
-    }
+    },
+    context: { loading: loading || getPoliciesLoading || deletePoliciesLoading }
   });
 
   useEffect(() => {
@@ -40,9 +55,36 @@ function AccessPolicyForm() {
     methods.reset({ policies: defaultPolicies });
   }, [methods, defaultPolicies]);
 
-  const { request: updatePoliciesRequest, loading, error } = useRequestSetAccessControl();
+  const onSubmit = ({ policies }: { policies: FormPolicy[] }) => {
+    const addressesToRemove = getAddressesWithDeletedPolicies({
+      formPolicies: policies,
+      databasePolicies: data ?? []
+    });
+    if (addressesToRemove.length > 0) {
+      setDeletedAddresses(addressesToRemove);
+    } else {
+      onUpdatePolicies({ policies });
+    }
+  };
 
-  const onSubmit = async ({ policies }: { policies: FormPolicy[] }) => {
+  const onConfirmDeletePolicies = async () => {
+    const formValues = methods.getValues();
+    const addresses = deletedAddresses;
+    setDeletedAddresses([]);
+    await deletePoliciesRequest({ addresses });
+
+    const currentAddressesWithPolicies: Record<string, boolean> = LocalStorageService.getPolicyAddresses();
+    for (const address of addresses) {
+      delete currentAddressesWithPolicies[address];
+    }
+    LocalStorageService.setPolicyAddresses(currentAddressesWithPolicies);
+
+    onUpdatePolicies(formValues);
+  };
+
+  const onCancelDeletePolicies = () => setDeletedAddresses([]);
+
+  const onUpdatePolicies = async ({ policies }: { policies: FormPolicy[] }) => {
     const response = await updatePoliciesRequest({ policies });
     if (response.ok) {
       const addressesMap = policies.reduce<Record<string, boolean>>((acc, policy) => {
@@ -51,15 +93,12 @@ function AccessPolicyForm() {
       }, {});
 
       // Temporary until there's an endpoint to get policies for all addresses
-      const currentAddressesWithPolicies = JSON.parse(localStorage.getItem('policyAddresses') || '{}') ?? {};
-      localStorage.setItem(
-        'policyAddresses',
-        JSON.stringify({ ...currentAddressesWithPolicies, ...addressesMap })
-      );
-    }
+      const currentAddressesWithPolicies = LocalStorageService.getPolicyAddresses();
+      LocalStorageService.setPolicyAddresses({ ...currentAddressesWithPolicies, ...addressesMap });
 
-    // Update policies
-    getPoliciesRequest();
+      // Update policies
+      getPoliciesRequest();
+    }
   };
 
   if (getPoliciesLoading) {
@@ -83,12 +122,19 @@ function AccessPolicyForm() {
           </li>
         </ul>
       </div>
+      <DeletePolicyDialog
+        addressesToDelete={deletedAddresses}
+        onConfirm={onConfirmDeletePolicies}
+        onCancel={onCancelDeletePolicies}
+      />
       <FormProvider {...methods}>
         <form className={styles.setPolicyContainer} onSubmit={methods.handleSubmit(onSubmit)}>
-          <PolicyFormArray />
-          <Button type="submit" loading={loading || getPoliciesLoading}>
-            Update Policies
-          </Button>
+          <PolicyFormArray loading={loading || getPoliciesLoading || deletePoliciesLoading} />
+          {methods.formState.isDirty && (
+            <Button type="submit" loading={loading || getPoliciesLoading || deletePoliciesLoading}>
+              Update Policies
+            </Button>
+          )}
           {error && <div className={styles.requestError}>{error}</div>}
         </form>
       </FormProvider>

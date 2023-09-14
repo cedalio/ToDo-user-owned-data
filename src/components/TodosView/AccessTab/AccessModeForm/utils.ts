@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { cedalioSdk } from '../../../../utils/sdk';
 import { GetAccessModeResponse, AccessMode } from '@cedalio/sdk-js';
+import * as LocalStorageService from '../../../../utils/LocalStorageService';
 
 export const useGetAccessMode = () => {
   const [state, setState] = useState<{ loading: boolean; error?: string; data?: GetAccessModeResponse }>({
@@ -10,9 +11,9 @@ export const useGetAccessMode = () => {
   });
 
   const request = useCallback(async () => {
-    setState({ loading: false, data: undefined, error: undefined });
+    setState({ loading: true, data: undefined, error: undefined });
 
-    const deploymentId = localStorage.getItem('deploymentId') as string;
+    const deploymentId = LocalStorageService.getDeploymentId() as string;
     const response = await cedalioSdk.getAccessMode({ deploymentId });
 
     if (response.ok) {
@@ -34,7 +35,7 @@ export const useUpdateAccessMode = () => {
   const request = useCallback(async (accessMode: AccessMode) => {
     setState({ loading: true, error: undefined });
 
-    const deploymentId = localStorage.getItem('deploymentId') as string;
+    const deploymentId = LocalStorageService.getDeploymentId() as string;
     const response = await cedalioSdk.setAccessMode({ deploymentId, accessMode });
 
     if (response.ok) {

@@ -5,6 +5,7 @@ import { Web3Modal } from '@web3modal/react';
 import { configureChains, createClient, WagmiConfig, useAccount } from 'wagmi';
 import { polygonMumbai } from 'wagmi/chains';
 import { createUploadLink } from 'apollo-upload-client';
+import * as LocalStorageService from './utils/LocalStorageService';
 
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -113,7 +114,7 @@ export default function App() {
         if (token) {
           setApolloClient(createApolloClient({ deploymentId, onTokenExpiration: logoutFromCedalio }));
         }
-        localStorage.setItem('deploymentId', deploymentId);
+        LocalStorageService.setDeploymentId(deploymentId);
       } else {
         setDeployError('Deploy has failed');
       }
@@ -129,7 +130,7 @@ export default function App() {
     const deployResponse = await cedalioSdk.createDatabase();
     if (deployResponse.ok) {
       const { deploymentId } = deployResponse.data;
-      localStorage.setItem('deploymentId', deploymentId);
+      LocalStorageService.setDeploymentId(deploymentId);
       waitForDbDeployment(deploymentId);
     } else {
       setDeployError(deployResponse.error.message);
@@ -139,7 +140,7 @@ export default function App() {
   const { isConnected, address } = useAccount({
     onConnect: async (data) => {
       if (data.address) {
-        let token: string | undefined | null = localStorage.getItem('token');
+        let token: string | undefined | null = LocalStorageService.getToken();
         const { address } = data;
 
         // If current token is invalid/expired, logout
@@ -157,7 +158,7 @@ export default function App() {
         }
 
         // If there's a deploymentId avoid deploy and check database status
-        const deploymentId = localStorage.getItem('deploymentId');
+        const deploymentId = LocalStorageService.getDeploymentId();
         if (token && deploymentId) {
           setApolloClient(createApolloClient({ deploymentId, onTokenExpiration: logoutFromCedalio }));
           setDatabaseReady(true);

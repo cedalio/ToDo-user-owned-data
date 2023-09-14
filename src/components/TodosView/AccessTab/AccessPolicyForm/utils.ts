@@ -4,10 +4,12 @@ import {
   SetAccessPolicy,
   AccessPolicy,
   ErrorApiResponse,
-  SuccessApiResponse
+  SuccessApiResponse,
+  ApiResponse
 } from '@cedalio/sdk-js';
 import { useCallback, useState } from 'react';
 import { cedalioSdk } from '../../../../utils/sdk';
+import * as LocalStorageService from '../../../../utils/LocalStorageService';
 
 export interface FormPolicy {
   address: string;
@@ -21,14 +23,47 @@ export const OBJECT_TYPE_FIELDS: Record<string, string[]> = {
   Todo: ['id', 'title', 'description']
 };
 
-export const useRequestSetAccessControl = () => {
+// Receives an array of functions executing promises and it runs them sequentially
+async function chainPromises<SuccessData>(
+  promises: (() => Promise<ApiResponse<SuccessData>>)[]
+): Promise<
+  { error: false; result: SuccessApiResponse<SuccessData>[] } | { error: true; result: ErrorApiResponse }
+> {
+  const successResponses = [];
+  for (const promise of promises) {
+    try {
+      const res = await promise();
+      if (!res.ok) {
+        return { error: true, result: res };
+      }
+      successResponses.push(res);
+    } catch (error) {
+      // Handle the error here
+      return {
+        error: true,
+        result: {
+          ok: false,
+          status: 500,
+          error: {
+            payload: {},
+            message: 'Unknown error'
+          }
+        }
+      };
+    }
+  }
+
+  return { error: false, result: successResponses };
+}
+
+export const useRequestUpdateAccessPolicies = () => {
   const [state, setState] = useState<{
     loading: boolean;
     error?: string;
   }>({ loading: false, error: undefined });
 
   const request = async ({ policies }: { policies: SetAccessPolicy[] }) => {
-    const deploymentId = localStorage.getItem('deploymentId') as string;
+    const deploymentId = LocalStorageService.getDeploymentId() as string;
 
     setState({ loading: true, error: undefined });
 
@@ -59,9 +94,8 @@ export const useGetPoliciesRequest = () => {
   }>({ loading: false, error: undefined, data: undefined });
 
   const request = useCallback(async () => {
-    const deploymentId = localStorage.getItem('deploymentId') as string;
-    const addresses: Record<string, boolean> =
-      JSON.parse(localStorage.getItem('policyAddresses') || '{}') ?? {};
+    const deploymentId = LocalStorageService.getDeploymentId() as string;
+    const addresses = LocalStorageService.getPolicyAddresses();
 
     setState({ loading: true, error: undefined, data: undefined });
 
@@ -92,4 +126,55 @@ export const useGetPoliciesRequest = () => {
   }, []);
 
   return { ...state, request };
+};
+
+// Endpoint to delete user policy does not exist yet so I delete in batch
+export const useDeleteUserPolicyRequest = () => {
+  const [state, setState] = useState<{
+    loading: boolean;
+    error?: string;
+  }>({ loading: false, error: undefined });
+
+  const request = async ({ addresses }: { addresses: string[] }) => {
+    const deploymentId = LocalStorageService.getDeploymentId() as string;
+
+    setState({ loading: true, error: undefined });
+
+    const requests = addresses.map((address) => {
+      return () => cedalioSdk.resetAccessPolicyForUser({ deploymentId, address });
+    });
+
+    const { error, result } = await chainPromises(requests);
+
+    if (error) {
+      setState({ loading: false, error: result.error.message });
+      return result;
+    }
+
+    setState({ error: undefined, loading: false });
+    return {
+      ok: true,
+      status: 204
+    };
+  };
+
+  return { ...state, request };
+};
+
+export const getAddressesWithDeletedPolicies = ({
+  databasePolicies,
+  formPolicies
+}: {
+  databasePolicies: {
+    address: string;
+    policy: AccessPolicy;
+  }[];
+  formPolicies: SetAccessPolicy[];
+}) => {
+  return databasePolicies.reduce<string[]>((result, policy) => {
+    if (!formPolicies.find((formPolicy) => formPolicy.address === policy.address)) {
+      result.push(policy.address);
+    }
+    return result;
+  }, []);
 };

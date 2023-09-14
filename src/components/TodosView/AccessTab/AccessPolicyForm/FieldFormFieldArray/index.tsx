@@ -9,9 +9,10 @@ import FormFieldButtons from '../../../../shared/FormFieldButtons';
 interface Props {
   policyIndex: number;
   ruleIndex: number;
+  loading: boolean;
 }
 
-function FieldFormFieldArray({ policyIndex, ruleIndex }: Props) {
+function FieldFormFieldArray({ policyIndex, ruleIndex, loading }: Props) {
   const fieldNamePrefix = `policies.${policyIndex}.accessRules.${ruleIndex}` as const;
 
   const { watch, control, getValues } = useFormContext<{ policies: FormPolicy[] }>();
@@ -62,6 +63,7 @@ function FieldFormFieldArray({ policyIndex, ruleIndex }: Props) {
                 label="Field Name"
                 getValue={(v) => v}
                 {...selectField}
+                disabled={loading}
               />
             )}
             name={`${fieldNamePrefix}.fields.${index}.fieldName`}
@@ -70,14 +72,20 @@ function FieldFormFieldArray({ policyIndex, ruleIndex }: Props) {
           <div className={styles.checkboxContainer}>
             <Controller
               render={({ field: { ref, value, ...checkboxField } }) => (
-                <Checkbox label="Read" {...checkboxField} inputRef={ref} checked={value} />
+                <Checkbox label="Read" {...checkboxField} inputRef={ref} checked={value} disabled={loading} />
               )}
               name={`${fieldNamePrefix}.fields.${index}.read`}
               control={control}
             />
             <Controller
               render={({ field: { ref, value, ...checkboxField } }) => (
-                <Checkbox label="Write" {...checkboxField} inputRef={ref} checked={value} />
+                <Checkbox
+                  label="Write"
+                  {...checkboxField}
+                  inputRef={ref}
+                  checked={value}
+                  disabled={loading}
+                />
               )}
               name={`${fieldNamePrefix}.fields.${index}.write`}
               control={control}
@@ -89,6 +97,7 @@ function FieldFormFieldArray({ policyIndex, ruleIndex }: Props) {
             onAdd={onAdd}
             onRemove={onRemove}
             max={OBJECT_TYPE_FIELDS[objectType].length}
+            disabled={loading}
           />
         </div>
       ))}
