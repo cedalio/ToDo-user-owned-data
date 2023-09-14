@@ -10,11 +10,11 @@ import Button from '../../../../shared/Button';
 
 const POLICY_TYPES = ['ALLOW_FULL_ACCESS', 'FIELD_BASED'];
 
-function PolicyFormArray() {
+function PolicyFormArray({ loading }: { loading: boolean }) {
   const {
     control,
     formState: { errors }
-  } = useFormContext<{ policies: FormPolicy[] }>();
+  } = useFormContext<{ policies: FormPolicy[] }, { loading: boolean }>();
   const { fields, append, remove } = useFieldArray({
     name: 'policies'
   });
@@ -38,6 +38,7 @@ function PolicyFormArray() {
               fieldIndex={index}
               onAdd={onAdd}
               onRemove={onRemove}
+              disabled={loading}
               allowEmpty
             />
           </div>
@@ -49,6 +50,7 @@ function PolicyFormArray() {
                   label="Policy Type"
                   getValue={(v) => v}
                   {...selectField}
+                  disabled={loading}
                   className={styles.policyType}
                 />
               )}
@@ -65,13 +67,14 @@ function PolicyFormArray() {
                   className={styles.address}
                   error={!!errors.policies?.[index]?.address}
                   helperText={errors.policies?.[index]?.address?.message}
+                  disabled={loading}
                 />
               )}
               name={`policies.${index}.address`}
               control={control}
             />
           </div>
-          <RuleFormFieldArray policyIndex={index} />
+          <RuleFormFieldArray policyIndex={index} loading={loading} />
         </div>
       ))}
     </div>

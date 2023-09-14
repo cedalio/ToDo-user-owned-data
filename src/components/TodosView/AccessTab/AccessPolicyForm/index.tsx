@@ -13,11 +13,13 @@ import {
 import PolicyFormArray from './PolicyFormArray';
 import Spinner from '../../../shared/Spinner';
 import DeletePolicyDialog from './DeletePolicyModal';
+import * as LocalStorageService from '../../../../utils/LocalStorageService';
 
 function AccessPolicyForm() {
   const [deletedAddresses, setDeletedAddresses] = useState<string[]>([]);
   const { request: getPoliciesRequest, data, loading: getPoliciesLoading } = useGetPoliciesRequest();
   const { request: deletePoliciesRequest, loading: deletePoliciesLoading } = useDeleteUserPolicyRequest();
+  const { request: updatePoliciesRequest, loading, error } = useRequestUpdateAccessPolicies();
 
   const defaultPolicies = useMemo(
     () =>
@@ -41,7 +43,8 @@ function AccessPolicyForm() {
   const methods = useForm<{ policies: FormPolicy[] }>({
     defaultValues: {
       policies: defaultPolicies
-    }
+    },
+    context: { loading: loading || getPoliciesLoading || deletePoliciesLoading }
   });
 
   useEffect(() => {
@@ -51,8 +54,6 @@ function AccessPolicyForm() {
   useEffect(() => {
     methods.reset({ policies: defaultPolicies });
   }, [methods, defaultPolicies]);
-
-  const { request: updatePoliciesRequest, loading, error } = useRequestUpdateAccessPolicies();
 
   const onSubmit = ({ policies }: { policies: FormPolicy[] }) => {
     const addressesToRemove = getAddressesWithDeletedPolicies({
@@ -72,12 +73,11 @@ function AccessPolicyForm() {
     setDeletedAddresses([]);
     await deletePoliciesRequest({ addresses });
 
-    const currentAddressesWithPolicies: Record<string, boolean> =
-      JSON.parse(localStorage.getItem('policyAddresses') || '{}') ?? {};
+    const currentAddressesWithPolicies: Record<string, boolean> = LocalStorageService.getPolicyAddresses();
     for (const address of addresses) {
       delete currentAddressesWithPolicies[address];
     }
-    localStorage.setItem('policyAddresses', JSON.stringify(currentAddressesWithPolicies));
+    LocalStorageService.setPolicyAddresses(currentAddressesWithPolicies);
 
     onUpdatePolicies(formValues);
   };
@@ -93,11 +93,8 @@ function AccessPolicyForm() {
       }, {});
 
       // Temporary until there's an endpoint to get policies for all addresses
-      const currentAddressesWithPolicies = JSON.parse(localStorage.getItem('policyAddresses') || '{}') ?? {};
-      localStorage.setItem(
-        'policyAddresses',
-        JSON.stringify({ ...currentAddressesWithPolicies, ...addressesMap })
-      );
+      const currentAddressesWithPolicies = LocalStorageService.getPolicyAddresses();
+      LocalStorageService.setPolicyAddresses({ ...currentAddressesWithPolicies, ...addressesMap });
 
       // Update policies
       getPoliciesRequest();
@@ -132,7 +129,7 @@ function AccessPolicyForm() {
       />
       <FormProvider {...methods}>
         <form className={styles.setPolicyContainer} onSubmit={methods.handleSubmit(onSubmit)}>
-          <PolicyFormArray />
+          <PolicyFormArray loading={loading || getPoliciesLoading || deletePoliciesLoading} />
           {methods.formState.isDirty && (
             <Button type="submit" loading={loading || getPoliciesLoading || deletePoliciesLoading}>
               Update Policies

@@ -2,6 +2,8 @@ import CedalioSDK from '@cedalio/sdk-js';
 import { CEDALIO_PROJECT_ID } from './envs';
 import { disconnect } from '@wagmi/core';
 
+import * as LocalStorageService from './LocalStorageService';
+
 export const cedalioSdk = new CedalioSDK({ projectId: CEDALIO_PROJECT_ID });
 
 export const validateJwt = (token: string) => {
@@ -18,7 +20,7 @@ export const loginToCedalio = async (address: string) => {
   const response = await cedalioSdk?.login({ address });
 
   if (response?.ok) {
-    localStorage.setItem('token', response.data.token);
+    LocalStorageService.setToken(response.data.token);
     return response.data.token;
   }
   return undefined;

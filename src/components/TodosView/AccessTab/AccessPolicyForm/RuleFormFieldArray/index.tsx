@@ -9,9 +9,10 @@ import FormFieldButtons from '../../../../shared/FormFieldButtons';
 
 interface Props {
   policyIndex: number;
+  loading: boolean;
 }
 
-function RuleFormFieldArray({ policyIndex }: Props) {
+function RuleFormFieldArray({ policyIndex, loading }: Props) {
   const fieldNamePrefix = `policies.${policyIndex}.accessRules` as const;
   const objectTypes = useMemo(() => Object.keys(OBJECT_TYPE_FIELDS), []);
 
@@ -62,6 +63,7 @@ function RuleFormFieldArray({ policyIndex }: Props) {
                   getValue={(v) => v}
                   {...selectField}
                   className={styles.objectTypeName}
+                  disabled={loading}
                 />
               )}
               name={`${fieldNamePrefix}.${index}.objectTypeName`}
@@ -73,10 +75,11 @@ function RuleFormFieldArray({ policyIndex }: Props) {
               onAdd={onAdd}
               onRemove={onRemove}
               max={objectTypes.length}
+              disabled={loading}
             />
           </div>
 
-          <FieldFormFieldArray policyIndex={policyIndex} ruleIndex={index} />
+          <FieldFormFieldArray policyIndex={policyIndex} ruleIndex={index} loading={loading} />
         </div>
       ))}
     </div>

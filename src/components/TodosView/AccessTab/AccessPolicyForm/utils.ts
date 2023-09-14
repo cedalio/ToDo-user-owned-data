@@ -9,6 +9,7 @@ import {
 } from '@cedalio/sdk-js';
 import { useCallback, useState } from 'react';
 import { cedalioSdk } from '../../../../utils/sdk';
+import * as LocalStorageService from '../../../../utils/LocalStorageService';
 
 export interface FormPolicy {
   address: string;
@@ -62,7 +63,7 @@ export const useRequestUpdateAccessPolicies = () => {
   }>({ loading: false, error: undefined });
 
   const request = async ({ policies }: { policies: SetAccessPolicy[] }) => {
-    const deploymentId = localStorage.getItem('deploymentId') as string;
+    const deploymentId = LocalStorageService.getDeploymentId() as string;
 
     setState({ loading: true, error: undefined });
 
@@ -93,9 +94,8 @@ export const useGetPoliciesRequest = () => {
   }>({ loading: false, error: undefined, data: undefined });
 
   const request = useCallback(async () => {
-    const deploymentId = localStorage.getItem('deploymentId') as string;
-    const addresses: Record<string, boolean> =
-      JSON.parse(localStorage.getItem('policyAddresses') || '{}') ?? {};
+    const deploymentId = LocalStorageService.getDeploymentId() as string;
+    const addresses = LocalStorageService.getPolicyAddresses();
 
     setState({ loading: true, error: undefined, data: undefined });
 
@@ -136,7 +136,7 @@ export const useDeleteUserPolicyRequest = () => {
   }>({ loading: false, error: undefined });
 
   const request = async ({ addresses }: { addresses: string[] }) => {
-    const deploymentId = localStorage.getItem('deploymentId') as string;
+    const deploymentId = LocalStorageService.getDeploymentId() as string;
 
     setState({ loading: true, error: undefined });
 

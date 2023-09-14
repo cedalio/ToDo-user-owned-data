@@ -35,8 +35,9 @@ function AccessModeForm() {
     }
   }, [reset, data?.accessMode]);
 
-  const onSubmit = ({ accessMode }: { accessMode: AccessMode }) => {
-    updateAccessModeRequest(accessMode);
+  const onSubmit = async ({ accessMode }: { accessMode: AccessMode }) => {
+    await updateAccessModeRequest(accessMode);
+    getAccessModeRequest();
   };
 
   const accessMode = watch('accessMode');
@@ -63,8 +64,18 @@ function AccessModeForm() {
       {getAccessModeLoading && <Spinner size="50px" className={styles.spinner} />}
       {!getAccessModeLoading && (
         <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
-          <Select options={ACCESS_MODES} getValue={(v) => v} label="Access Mode" {...selectField} />
-          <Button type="submit" loading={updateAccessModeLoading} disabled={accessMode === currentAccessMode}>
+          <Select
+            options={ACCESS_MODES}
+            getValue={(v) => v}
+            label="Access Mode"
+            {...selectField}
+            disabled={updateAccessModeLoading}
+          />
+          <Button
+            type="submit"
+            loading={updateAccessModeLoading || getAccessModeLoading}
+            disabled={accessMode === currentAccessMode}
+          >
             Update Access Mode
           </Button>
           {error && <div className={styles.requestError}>{error}</div>}
