@@ -1,9 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import './App.css';
-import { EthereumClient, modalConnectors, walletConnectProvider } from '@web3modal/ethereum';
-import { Web3Modal } from '@web3modal/react';
-import { configureChains, createClient, WagmiConfig, useAccount } from 'wagmi';
-import { polygonMumbai } from 'wagmi/chains';
+import { useAccount } from 'wagmi';
 import { createUploadLink } from 'apollo-upload-client';
 import * as LocalStorageService from './utils/LocalStorageService';
 
@@ -24,6 +20,7 @@ import Login from './components/Login';
 import { cedalioSdk, loginToCedalio, logoutFromCedalio, validateJwt } from './utils/sdk';
 import TodosView from './components/TodosView';
 import { CEDALIO_PROJECT_ID } from './utils/envs';
+import './App.css';
 
 const style = {
   position: 'absolute' as const,
@@ -40,21 +37,7 @@ const style = {
   flexDirection: 'column'
 };
 
-const chains = [polygonMumbai];
-
-const projectId = String(process.env.REACT_APP_WC_PROJECT_ID);
 const TRACKING_ID = String(process.env.REACT_APP_TRACKING_ID);
-
-// Wagmi client
-const { provider } = configureChains(chains, [walletConnectProvider({ projectId: projectId })]);
-const wagmiClient = createClient({
-  autoConnect: true,
-  connectors: modalConnectors({ appName: 'web3Modal', chains }),
-  provider
-});
-
-// Web3Modal Ethereum Client
-const ethereumClient = new EthereumClient(wagmiClient, chains);
 
 const createApolloClient = ({
   deploymentId,
@@ -95,7 +78,6 @@ const createApolloClient = ({
 
 export default function App() {
   const [contractAddress, setContractAddress] = useState<string | undefined>();
-  const projectId = String(process.env.REACT_APP_WC_PROJECT_ID);
   const [deployLoading, setDeployLoading] = useState(false);
   const [deployError, setDeployError] = useState<string>();
   const [databaseReady, setDatabaseReady] = useState(false);
@@ -223,41 +205,38 @@ export default function App() {
 
   return (
     <div className="App">
-      <WagmiConfig client={wagmiClient}>
-        <Header isLoggedIn={isLoggedIn} />
-        {!isLoggedIn && <Login />}
-        {isLoggedIn && databaseReady && apolloClient && <TodosView apolloClient={apolloClient} />}
-        <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
-        <Modal
-          aria-labelledby="transition-modal-title"
-          aria-describedby="transition-modal-description"
-          open={deployLoading || !!deployError}
-          closeAfterTransition
-          BackdropComponent={Backdrop}
-          BackdropProps={{
-            timeout: 500
-          }}
-        >
-          <Fade in={deployLoading || !!deployError}>
-            <Box sx={style}>
-              <Typography
-                id="transition-modal-title"
-                variant="h6"
-                component="h2"
-                sx={{ fontWeight: '800', textAlign: 'center' }}
-              >
-                Creating your account and deploying the Smart Contract Database in Polygon Mumbai!
-              </Typography>
-              <Typography id="transition-modal-description" sx={{ mt: 2, textAlign: 'center' }}>
-                This could take between <strong> 15 to 30 seconds</strong> depending on the network
-                congestion. Please <strong>don’t close the window.</strong>
-              </Typography>
-              <Loader />
-            </Box>
-          </Fade>
-        </Modal>
-        <Footer contractAddress={contractAddress} />
-      </WagmiConfig>
+      <Header isLoggedIn={isLoggedIn} />
+      {!isLoggedIn && <Login />}
+      {isLoggedIn && databaseReady && apolloClient && <TodosView apolloClient={apolloClient} />}
+      <Modal
+        aria-labelledby="transition-modal-title"
+        aria-describedby="transition-modal-description"
+        open={deployLoading || !!deployError}
+        closeAfterTransition
+        BackdropComponent={Backdrop}
+        BackdropProps={{
+          timeout: 500
+        }}
+      >
+        <Fade in={deployLoading || !!deployError}>
+          <Box sx={style}>
+            <Typography
+              id="transition-modal-title"
+              variant="h6"
+              component="h2"
+              sx={{ fontWeight: '800', textAlign: 'center' }}
+            >
+              Creating your account and deploying the Smart Contract Database in Polygon Mumbai!
+            </Typography>
+            <Typography id="transition-modal-description" sx={{ mt: 2, textAlign: 'center' }}>
+              This could take between <strong> 15 to 30 seconds</strong> depending on the network congestion.
+              Please <strong>don’t close the window.</strong>
+            </Typography>
+            <Loader />
+          </Box>
+        </Fade>
+      </Modal>
+      <Footer contractAddress={contractAddress} />
     </div>
   );
 }
