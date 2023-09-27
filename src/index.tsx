@@ -1,10 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 import { HttpLink } from '@apollo/client';
+import WagmiContainer from './WagmiContainer';
 
 const link = new HttpLink({
   uri: String(process.env.REACT_APP_GRAPHQL_URL),
@@ -23,7 +23,7 @@ const client = new ApolloClient({
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 root.render(
   <ApolloProvider client={client}>
-    <App />
+    <WagmiContainer />
   </ApolloProvider>
 );
 
