@@ -5,10 +5,11 @@ type Todo @model{
       tags: [String!]
       "Posibles status, ready, done and deleted."
       status: Status
-   }
-   
+      image: File
+}
+
 enum Status {
-     DONE
-     DELETED
-     READY
+   DONE
+   DELETED
+   READY
 }
